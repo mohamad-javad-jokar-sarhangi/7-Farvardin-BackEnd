@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+
+{% block title %}
+خانه
+{% endblock %}
+
+{% block content %}
+<div class="home-container">
+    <h2>خوش آمدید!</h2>
+    <p>به سیستم مدیریت کاربران خوش آمدید. از طریق منوی سمت راست می‌توانید به بخش‌های مختلف اپلیکیشن دسترسی داشته باشید.</p>
+    <div class="actions">
+        <a href="{% url 'signup' %}" class="button">ثبت‌نام کاربر جدید</a>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,34 @@
+{% extends 'base.html' %}
+
+{% block title %}
+مدیریت کاربران ثبت‌نشده
+{% endblock %}
+
+{% block content %}
+<div class="unregistered-users-container">
+    <h2>لیست کاربران ثبت‌نشده</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>نام</th>
+                <th>شماره تماس</th>
+                <th>نقش</th>
+                <th>عملیات</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for user in users %}
+            <tr>
+                <td>{{ user.name }}</td>
+                <td>{{ user.phone }}</td>
+                <td>{{ user.role }}</td>
+                <td>
+                    <a href="{% url 'approve_user' user.id %}" class="button approve">تأیید</a>
+                    <a href="{% url 'reject_user' user.id %}" class="button reject">رد</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

@@ -1,0 +1,158 @@
+/* -- تنظیمات کلی -- */
+body {
+    margin: 0;
+    padding: 0;
+    font-family: Arial, sans-serif;
+    background-color: #121212; /* پس‌زمینه اصلی تیره */
+    color: #F0E68C; /* متن طلایی */
+}
+
+/* -- کانتینر اصلی -- */
+.container {
+    display: flex;
+    flex-direction: row; /* تغییر از column به row */
+    height: 100vh;
+}
+
+
+.sidebar {
+    background-color: #191970; /* آبی تیره */
+    width: 200px;
+    padding: 15px;
+    flex-shrink: 0;
+    height: 100%;
+}
+
+.sidebar ul {
+    list-style-type: none;
+    padding: 0;
+    margin: 0;
+}
+
+.sidebar ul li {
+    margin: 10px 0;
+}
+
+.sidebar ul li a {
+    text-decoration: none;
+    color: #F0E68C; /* متن طلایی */
+    font-weight: bold;
+}
+
+.sidebar ul li a:hover {
+    color: #FFD700; /* طلایی روشن هنگام هاور */
+    text-decoration: underline;
+}
+
+/* -- بخش محتوا -- */
+.content {
+    flex-grow: 1;
+    padding: 20px;
+    background-color: #121212;
+    box-shadow: inset 0px 0px 5px rgba(255, 255, 255, 0.1);
+    overflow-y: auto;
+}
+
+
+
+/* دکمه‌های اصلی */
+.button {
+    display: inline-block;
+    padding: 10px 20px;
+    background-color: #FFD700; /* طلایی روشن */
+    color: #121212; /* متن تیره */
+    text-decoration: none;
+    font-weight: bold;
+    border-radius: 5px;
+    transition: background-color 0.3s;
+}
+
+.button:hover {
+    background-color: #F0E68C; /* طلایی ملایم‌تر */
+    color: #000000; /* متن مشکی */
+}
+
+.home-container {
+    text-align: center;
+    padding: 200px;
+    size: 100px;
+}
+
+.home-container h2 {
+    font-size: 2rem;
+    margin-bottom: 20px;
+}
+
+.home-container p {
+    font-size: 1.2rem;
+    margin-bottom: 30px;
+}
+
+.actions {
+    margin-top: 20px;
+}
+/* -- استایل‌های سایدبار -- */
+.sidebar {
+    background-color: #320374; 
+    width: 200px;
+    padding: 15px;
+    flex-shrink: 0;
+    height: 100%;
+}
+
+.sidebar ul {
+    list-style-type: none;
+    padding: 0;
+    margin: 0;
+}
+
+.sidebar ul li {
+    margin: 15px 0;
+}
+
+.sidebar ul li a {
+    text-decoration: none;
+    color: #F0E68C; /* متن طلایی */
+    font-size: 1.1rem;
+    font-weight: bold;
+    display: inline-block;
+    transition: color 0.3s;
+}
+
+.sidebar ul li a:hover {
+    color: #FFD700; /* طلایی روشن هنگام هاور */
+    text-decoration: underline;
+}
+
+
+/* -- فرم‌ها و جدول‌ها -- */
+form {
+    max-width: 400px;
+    margin: 0 auto; /* مرکز کردن فرم در افقی */
+}
+
+form .button {
+    margin-top: 20px;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+    background-color: #121212; /* پس‌زمینه تیره */
+    color: #F0E68C; /* متن طلایی */
+}
+
+table th, table td {
+    border: 1px solid #FFD700; /* خط طلایی */
+    padding: 10px;
+    text-align: left;
+}
+
+table th {
+    background-color: #483D8B; /* بنفش تیره */
+}
+
+table tr:nth-child(even) {
+    background-color: #191970; /* آبی تیره برای ردیف‌های زوج */
+}

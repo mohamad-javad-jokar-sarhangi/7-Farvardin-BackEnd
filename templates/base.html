@@ -1,0 +1,30 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}صفحه اصلی{% endblock %}</title>
+    <link rel="stylesheet" href="{% static 'style.css' %}"> <!-- فایل CSS -->
+</head>
+<body>
+    <div class="container">
+        <!-- سایدبار -->
+        <aside class="sidebar">
+            <ul>
+                <li><a href="{% url 'home' %}">خانه</a></li>
+                <li><a href="{% url 'signup' %}">ثبت‌نام کاربر</a></li>
+                <li><a href="{% url 'unregistered_users' %}">کاربران ثبت‌نشده</a></li>
+                <li><a href="{% url 'registered_users' %}">کاربران ثبت‌شده</a></li>
+            </ul>
+        </aside>
+        
+        <!-- بخش اصلی -->
+        <main class="content">
+            {% block content %}
+            <p>خوش آمدید به سیستم مدیریت کاربران</p>
+            {% endblock %}
+        </main>
+    </div>
+</body>
+</html>

@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+
+{% block title %}
+لیست کاربران تأیید‌شده
+{% endblock %}
+
+{% block content %}
+<div class="registered-users-container">
+    <h2>لیست کاربران تأیید‌شده</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>نام</th>
+                <th>شماره تماس</th>
+                <th>نقش</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for user in users %}
+            <tr>
+                <td>{{ user.name }}</td>
+                <td>{{ user.phone }}</td>
+                <td>{{ user.role }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}
