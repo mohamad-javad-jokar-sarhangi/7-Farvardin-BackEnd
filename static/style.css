@@ -1,26 +1,47 @@
 /* -- تنظیمات کلی -- */
 body {
+    font-family: Arial, sans-serif;
+    background-color: rgb(240, 243, 255); /* رنگ پس‌زمینه اصلی */
+    color: rgb(33, 25, 81); /* رنگ متن اصلی */
     margin: 0;
     padding: 0;
-    font-family: Arial, sans-serif;
-    background-color: #121212; /* پس‌زمینه اصلی تیره */
-    color: #F0E68C; /* متن طلایی */
 }
 
 /* -- کانتینر اصلی -- */
 .container {
     display: flex;
-    flex-direction: row; /* تغییر از column به row */
+    flex-direction: row;
     height: 100vh;
 }
 
-
+/* -- سایدبار -- */
 .sidebar {
-    background-color: #191970; /* آبی تیره */
+    background-color: rgb(131, 111, 255); /* بنفش ملایم برای سایدبار */
+    color: rgb(240, 243, 255); 
+    box-shadow: -3px 0 8px rgba(0, 0, 0, 0.2);
     width: 200px;
     padding: 15px;
     flex-shrink: 0;
     height: 100%;
+    border-right: 5px solid rgb(21, 245, 186); /* خط جداکننده */
+}
+
+.sidebar a {
+    display: block;
+    padding: 12px 20px; /* حاشیه مشخص‌تر */
+    color: rgb(21, 245, 186); 
+    text-decoration: none;
+    margin-bottom: 8px;
+    border-radius: 8px;
+    font-weight: bold;
+    background-color: rgba(255, 255, 255, 0.1); 
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.sidebar a:hover {
+    background-color: rgb(240, 243, 255); 
+    color: rgb(33, 25, 81); 
+    border-left: 3px solid rgb(131, 111, 255); 
 }
 
 .sidebar ul {
@@ -30,129 +51,155 @@ body {
 }
 
 .sidebar ul li {
-    margin: 10px 0;
+    margin: 12px 0;
 }
 
 .sidebar ul li a {
     text-decoration: none;
-    color: #F0E68C; /* متن طلایی */
+    color: rgb(240, 243, 255); 
     font-weight: bold;
+    display: block;
 }
 
 .sidebar ul li a:hover {
-    color: #FFD700; /* طلایی روشن هنگام هاور */
-    text-decoration: underline;
+    color: rgb(21, 245, 186); 
 }
 
-/* -- بخش محتوا -- */
+/* -- محتوای اصلی -- */
 .content {
     flex-grow: 1;
-    padding: 20px;
-    background-color: #121212;
-    box-shadow: inset 0px 0px 5px rgba(255, 255, 255, 0.1);
+    padding: 25px;
+    background-color: rgb(240, 243, 255); 
+    color: rgb(33, 25, 81); 
+    box-shadow: inset 0px 0px 5px rgba(0, 0, 0, 0.1);
+    border-radius: 10px;
     overflow-y: auto;
 }
 
-
-
-/* دکمه‌های اصلی */
+/* استایل دکمه‌ها */
 .button {
     display: inline-block;
-    padding: 10px 20px;
-    background-color: #FFD700; /* طلایی روشن */
-    color: #121212; /* متن تیره */
+    padding: 12px 25px;
+    background-color: rgb(21, 245, 186); 
+    color: rgb(33, 25, 81); 
     text-decoration: none;
     font-weight: bold;
-    border-radius: 5px;
-    transition: background-color 0.3s;
+    font-size: 16px;
+    border-radius: 8px;
+    transition: background-color 0.3s ease;
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.2);
 }
 
 .button:hover {
-    background-color: #F0E68C; /* طلایی ملایم‌تر */
-    color: #000000; /* متن مشکی */
+    background-color: rgb(131, 111, 255); 
+    color: rgb(240, 243, 255); 
 }
 
+/* استایل فرم‌ها */
+form {
+    max-width: 450px; /* متناسب با اندازه جدید تکس‌باکس‌ها */
+    margin: 0 auto; /* مرکز کردن فرم */
+    background-color: rgb(255, 255, 255); /* پس‌زمینه سفید فرم */
+    padding: 25px; /* حاشیه بیشتر برای فرم */
+    border-radius: 12px; /* گرد کردن گوشه‌ها برای فرم */
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.15); /* سایه فرم */
+}
+
+/* تنظیمات تکس‌باکس‌ها */
+form input[type="text"],
+form input[type="email"],
+form input[type="password"] {
+    width: 90%; /* عرض کامل */
+    padding: 15px; /* افزایش اندازه متن داخل تکس‌باکس */
+    margin-bottom: 20px; /* فاصله بین تکس‌باکس‌ها */
+    border: 3px solid rgb(131, 111, 255); /* خط دور تکس‌باکس */
+    border-radius: 15px; /* گرد کردن لبه‌ها */
+    font-size: 16px; /* افزایش سایز فونت */
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1); /* سایه برای زیبایی بیشتر */
+    transition: border-color 0.3s ease;
+}
+
+/* هنگام فوکوس روی تکس‌باکس */
+form input[type="text"]:focus,
+form input[type="email"]:focus,
+form input[type="password"]:focus {
+    border-color: rgb(21, 245, 186); /* تغییر رنگ خط هنگام فوکوس */
+    outline: none;
+    box-shadow: 0px 4px 8px rgba(21, 245, 186, 0.5); /* سایه سبز هنگام فوکوس */
+}
+
+/* تنظیم سایز دکمه‌های فرم */
+form .button {
+    margin-top: 20px;
+}
+
+/* استایل بخش انتخاب نقش */
+form select {
+    width: 100%; /* عرض کامل برای هماهنگی با تکس‌باکس‌ها */
+    padding: 15px; /* افزایش اندازه متن داخل سلکت */
+    margin-bottom: 20px; /* فاصله مناسب با سایر فیلدها */
+    border: 1px solid rgb(131, 111, 255); /* خط دور بخش انتخاب نقش */
+    border-radius: 8px; /* گرد کردن لبه‌ها */
+    font-size: 16px; /* افزایش سایز متن */
+    background-color: rgb(240, 243, 255); /* پس‌زمینه روشن */
+    color: rgb(33, 25, 81); /* متن تیره */
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.15); /* سایه برای زیبایی بیشتر */
+    transition: border-color 0.3s ease;
+}
+
+/* هنگام فوکوس روی بخش انتخاب نقش */
+form select:focus {
+    border-color: rgb(21, 245, 186); /* تغییر رنگ خط هنگام فوکوس */
+    outline: none;
+    box-shadow: 0px 4px 8px rgba(21, 245, 186, 0.5); /* سایه سبز هنگام فوکوس */
+}
+
+/* جدول‌ها */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+    background-color: rgb(240, 243, 255); 
+    color: rgb(33, 25, 81); 
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1); 
+}
+
+table th, table td {
+    border: 1px solid rgb(131, 111, 255); 
+    padding: 12px 15px;
+    text-align: center;
+}
+
+table th {
+    background-color: rgb(21, 245, 186); 
+    color: rgb(33, 25, 81); 
+    font-weight: bold;
+}
+
+table tr:nth-child(even) {
+    background-color: rgba(131, 111, 255, 0.2); 
+}
+
+table tr:hover {
+    background-color: rgba(131, 111, 255, 0.4); 
+}
+
+/* بخش صفحه خانه */
 .home-container {
     text-align: center;
     padding: 200px;
-    size: 100px;
 }
 
 .home-container h2 {
     font-size: 2rem;
     margin-bottom: 20px;
+    color: rgb(33, 25, 81); 
 }
 
 .home-container p {
     font-size: 1.2rem;
     margin-bottom: 30px;
-}
-
-.actions {
-    margin-top: 20px;
-}
-/* -- استایل‌های سایدبار -- */
-.sidebar {
-    background-color: #320374; 
-    width: 200px;
-    padding: 15px;
-    flex-shrink: 0;
-    height: 100%;
-}
-
-.sidebar ul {
-    list-style-type: none;
-    padding: 0;
-    margin: 0;
-}
-
-.sidebar ul li {
-    margin: 15px 0;
-}
-
-.sidebar ul li a {
-    text-decoration: none;
-    color: #F0E68C; /* متن طلایی */
-    font-size: 1.1rem;
-    font-weight: bold;
-    display: inline-block;
-    transition: color 0.3s;
-}
-
-.sidebar ul li a:hover {
-    color: #FFD700; /* طلایی روشن هنگام هاور */
-    text-decoration: underline;
-}
-
-
-/* -- فرم‌ها و جدول‌ها -- */
-form {
-    max-width: 400px;
-    margin: 0 auto; /* مرکز کردن فرم در افقی */
-}
-
-form .button {
-    margin-top: 20px;
-}
-
-table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-top: 20px;
-    background-color: #121212; /* پس‌زمینه تیره */
-    color: #F0E68C; /* متن طلایی */
-}
-
-table th, table td {
-    border: 1px solid #FFD700; /* خط طلایی */
-    padding: 10px;
-    text-align: left;
-}
-
-table th {
-    background-color: #483D8B; /* بنفش تیره */
-}
-
-table tr:nth-child(even) {
-    background-color: #191970; /* آبی تیره برای ردیف‌های زوج */
+    color: rgb(131, 111, 255); 
 }
