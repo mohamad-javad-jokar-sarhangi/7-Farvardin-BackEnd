@@ -8,4 +8,6 @@ urlpatterns = [
     path('approve-user/<int:user_id>/', approve_user, name='approve_user'),
     path('reject-user/<int:user_id>/', reject_user, name='reject_user'),
     path('registered-users/', registered_users_view, name='registered_users'),
+    # Apis
+    path('api_register/', UserNotRegisterCreateAPIView.as_view(), name='user_not_register_api'),
 ]

@@ -12,10 +12,14 @@
         <!-- سایدبار -->
         <aside class="sidebar">
             <ul>
+                <h4> بخش اختیارات ادمین </h4>
                 <li><a href="{% url 'home' %}">خانه</a></li>
                 <li><a href="{% url 'signup' %}">ثبت‌نام کاربر</a></li>
                 <li><a href="{% url 'unregistered_users' %}">کاربران ثبت‌نشده</a></li>
                 <li><a href="{% url 'registered_users' %}">کاربران ثبت‌شده</a></li>
+                <br/>
+                <h4> بخش مربوط به api </h4>
+                <li><a href="{% url 'user_not_register_api' %}"> ثبت نام </a></li>
             </ul>
         </aside>
         

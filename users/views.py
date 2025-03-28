@@ -1,9 +1,23 @@
 from .forms import UserNotRegisterForm
 from django.shortcuts import render, get_object_or_404, redirect
 from .models import UserNotRegister, User
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+from .serializers import UserNotRegisterSerializer
 
+# API
+# View برای ثبت‌نام UserNotRegister api
+class UserNotRegisterCreateAPIView(APIView):
 
+    def post(self, request):
+        serializer = UserNotRegisterSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()  # ذخیره داده‌ها در دیتابیس
+            return Response({'message': 'User added successfully'}, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+# For Panel Admin-------------------------------------------------------------------------------------
 def home_view(request):
     return render(request, 'home.html')  # رندر کردن فایل home.html
 
