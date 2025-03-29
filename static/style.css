@@ -203,3 +203,65 @@ table tr:hover {
     margin-bottom: 30px;
     color: rgb(131, 111, 255); 
 }
+/* استایل‌های مربوط به مقالات */
+.article-form-container {
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.article-form-container textarea {
+    width: 95%;
+    min-height: 200px;
+    padding: 15px;
+    margin-bottom: 20px;
+    border: 3px solid rgb(131, 111, 255);
+    border-radius: 15px;
+    font-size: 16px;
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+    transition: border-color 0.3s ease;
+}
+
+.article-form-container textarea:focus {
+    border-color: rgb(21, 245, 186);
+    outline: none;
+    box-shadow: 0px 4px 8px rgba(21, 245, 186, 0.5);
+}
+
+.article-detail-container {
+    max-width: 800px;
+    margin: 0 auto;
+    background-color: white;
+    padding: 25px;
+    border-radius: 12px;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.15);
+}
+
+.article-header {
+    border-bottom: 2px solid rgb(131, 111, 255);
+    padding-bottom: 20px;
+    margin-bottom: 20px;
+}
+
+.article-meta {
+    color: #666;
+    font-size: 0.9em;
+    margin-top: 10px;
+}
+
+.article-author, .article-date {
+    margin-right: 15px;
+}
+
+.article-content {
+    line-height: 1.8;
+    margin-bottom: 30px;
+}
+
+.article-actions {
+    margin-top: 30px;
+    text-align: center;
+}
+
+.error-message {
+    margin-bottom: 20px;
+}

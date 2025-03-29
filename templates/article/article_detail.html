@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+{% block title %}{{ article.title }}{% endblock %}
+
+{% block content %}
+<div class="article-detail-container">
+<div class="article-header">
+<h1>{{ article.title }}</h1>
+<div class="article-meta">
+<span class="article-author">نویسنده: {{ article.author.username }}</span>
+<span class="article-date">تاریخ انتشار: {{ article.created_at|date:"Y/m/d H:i" }}</span>
+</div>
+</div>
+
+<div class="article-content">
+<p style="white-space: pre-line;">{{ article.content }}</p>
+</div>
+
+<div class="article-actions">
+<a href="{% url 'article_list' %}" class="button">بازگشت به لیست مقالات</a>
+</div>
+</div>
+{% endblock %}

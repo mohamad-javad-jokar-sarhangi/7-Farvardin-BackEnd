@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+{% block title %}لیست مقالات{% endblock %}
+
+{% block content %}
+<div class="article-list-container">
+<h1>لیست مقالات</h1>
+
+<a href="{% url 'create_article' %}" class="button" style="margin-bottom: 20px;">ایجاد مقاله جدید</a>
+
+{% if articles %}
+<table>
+<thead>
+<tr>
+<th>شناسه</th>
+<th>عنوان</th>
+<th>نویسنده</th>
+<th>تاریخ ایجاد</th>
+<th>عملیات</th>
+</tr>
+</thead>
+<tbody>
+{% for article in articles %}
+<tr>
+<td>{{ article.id }}</td>
+<td>{{ article.title }}</td>
+<td>{{ article.author.username }}</td>
+<td>{{ article.created_at|date:"Y/m/d H:i" }}</td>
+<td>
+<a href="{% url 'article_detail' article.id %}" class="button" style="padding: 5px 10px; font-size: 14px;">مشاهده</a>
+</td>
+</tr>
+{% endfor %}
+</tbody>
+</table>
+{% else %}
+<p style="text-align: center; margin: 50px 0; color: #888;">هیچ مقاله‌ای ثبت نشده است</p>
+{% endif %}
+</div>
+{% endblock %}

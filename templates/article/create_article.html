@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+{% block title %}ایجاد مقاله جدید{% endblock %}
+
+{% block content %}
+<div class="article-form-container">
+<h1>ایجاد مقاله جدید</h1>
+
+{% if error_message %}
+<div class="error-message" style="color: red; background-color: #ffe6e6; padding: 10px; border-radius: 5px; margin-bottom: 15px;">
+{{ error_message }}
+</div>
+{% endif %}
+
+<form method="post">
+{% csrf_token %}
+
+<div class="form-group">
+<label for="title">عنوان مقاله:</label>
+<input type="text" id="title" name="title" value="{{ title|default:'' }}" placeholder="عنوان مقاله را وارد کنید" required>
+</div>
+
+<div class="form-group">
+<label for="author">نویسنده:</label>
+<select id="author" name="author_id" required>
+<option value="">انتخاب نویسنده</option>
+{% for user in users %}
+<option value="{{ user.id }}">{{ user.username }}</option>
+{% endfor %}
+</select>
+</div>
+
+<div class="form-group">
+<label for="content">محتوای مقاله:</label>
+<textarea id="content" name="content" placeholder="محتوای مقاله را وارد کنید" rows="10" required>{{ content|default:'' }}</textarea>
+</div>
+
+<button type="submit" class="button">ذخیره مقاله</button>
+<a href="{% url 'article_list' %}" class="button" style="background-color: #ccc; margin-right: 10px;">انصراف</a>
+</form>
+</div>
+{% endblock %}
