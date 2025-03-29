@@ -1,10 +1,9 @@
 from django.db import models
-from users.models import User  # به جای مدل کاربر پیش‌فرض از مدل User سفارشی استفاده می‌کنیم
 
 class Article(models.Model):
     title = models.CharField(max_length=200)
     content = models.TextField()
-    author = models.ForeignKey(User, on_delete=models.CASCADE, related_name='articles')
+    author_name = models.CharField(max_length=255, null=True, blank=True)  # اجازه دادن به مقدار null
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

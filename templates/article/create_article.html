@@ -19,19 +19,37 @@
 <input type="text" id="title" name="title" value="{{ title|default:'' }}" placeholder="عنوان مقاله را وارد کنید" required>
 </div>
 
-<div class="form-group"><label for="author">نویسنده:</label>
-    <select id="author" name="author_id" required>
-    <option value="">انتخاب نویسنده</option>
-    {% for user in users %}
-    <option value="{{ user.id }}">{{ user.name }}</option>
-    {% endfor %}
-    </select>
+<!-- اضافه کردن فیلد محتوای مقاله -->
+<div class="form-group">
+    <label for="content">محتوای مقاله:</label>
+    <textarea id="content" name="content" rows="10" placeholder="محتوای مقاله را وارد کنید" required>{{ content|default:'' }}</textarea>
 </div>
 
 <div class="form-group">
-<label for="content">محتوای مقاله:</label>
-<textarea id="content" name="content" placeholder="محتوای مقاله را وارد کنید" rows="10" required>{{ content|default:'' }}</textarea>
+    <label for="author">نویسنده:</label>
+    <select id="author" name="author_id" required>
+        <option value="">انتخاب نویسنده</option>
+        {% for user in users %}
+        <option value="{{ user.id }}">{{ user.name }}</option>
+        {% endfor %}
+        <option value="custom">نویسنده دیگر...</option>
+    </select>
 </div>
+
+<div class="form-group" id="custom_author_div" style="display:none;">
+    <label for="custom_author">نام نویسنده:</label>
+    <input type="text" id="custom_author" name="custom_author_name" class="form-control">
+</div>
+
+<script>
+    document.getElementById('author').addEventListener('change', function() {
+        if (this.value === 'custom') {
+            document.getElementById('custom_author_div').style.display = 'block';
+        } else {
+            document.getElementById('custom_author_div').style.display = 'none';
+        }
+    });
+</script>
 
 <button type="submit" class="button">ذخیره مقاله</button>
 <a href="{% url 'article_list' %}" class="button" style="background-color: #ccc; margin-right: 10px;">انصراف</a>

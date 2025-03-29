@@ -23,7 +23,7 @@
 <tr>
 <td>{{ article.id }}</td>
 <td>{{ article.title }}</td>
-<td>{{ article.author.username }}</td>
+<td>{{ article.author_name }}</td>
 <td>{{ article.created_at|date:"Y/m/d H:i" }}</td>
 <td>
 <a href="{% url 'article_detail' article.id %}" class="button" style="padding: 5px 10px; font-size: 14px;">مشاهده</a>
