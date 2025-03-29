@@ -19,14 +19,13 @@
 <input type="text" id="title" name="title" value="{{ title|default:'' }}" placeholder="عنوان مقاله را وارد کنید" required>
 </div>
 
-<div class="form-group">
-<label for="author">نویسنده:</label>
-<select id="author" name="author_id" required>
-<option value="">انتخاب نویسنده</option>
-{% for user in users %}
-<option value="{{ user.id }}">{{ user.username }}</option>
-{% endfor %}
-</select>
+<div class="form-group"><label for="author">نویسنده:</label>
+    <select id="author" name="author_id" required>
+    <option value="">انتخاب نویسنده</option>
+    {% for user in users %}
+    <option value="{{ user.id }}">{{ user.name }}</option>
+    {% endfor %}
+    </select>
 </div>
 
 <div class="form-group">

@@ -1,8 +1,6 @@
 from django.shortcuts import render, get_object_or_404, redirect
-from django.contrib.auth import get_user_model
 from .models import Article
-
-User = get_user_model()
+from users.models import User  # مستقیماً مدل User سفارشی را وارد می‌کنیم
 
 def article_list(request):
     """نمایش لیست تمام مقالات"""
