@@ -1,12 +1,14 @@
 from django import forms
-from .models import UserNotRegister
+from .models import UserNotRegister , User
 
 class UserNotRegisterForm(forms.ModelForm):
     ROLE_CHOICES = [
-        ("روستایی", "روستایی"),
+        ("عادی", "عادی"),
         ("راننده", "راننده"),
         ("فروشنده", "فروشنده"),
-        ("دهیار-شورا", "دهیار-شورا"),
+        ("شورا", "شورا"),
+         ("دهیار", "دهیار"),
+        
     ]
 
     class Meta:
@@ -22,3 +24,15 @@ class UserNotRegisterForm(forms.ModelForm):
         'class': 'form-control',
         'placeholder': 'نقش',
     }))
+
+class UserApproveForm(forms.ModelForm):
+    class Meta:
+        model = User
+        fields = ['name', 'phone', 'role', 'username', 'password']
+        widgets = {
+            'name': forms.TextInput(attrs={'class': 'form-control', 'readonly': True}),
+            'phone': forms.TextInput(attrs={'class': 'form-control', 'readonly': True}),
+            'role': forms.TextInput(attrs={'class': 'form-control', 'readonly': True}),
+            'username': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'نام کاربری'}),
+            'password': forms.PasswordInput(attrs={'class': 'form-control', 'placeholder': 'رمز عبور'}),
+        }

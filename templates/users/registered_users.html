@@ -13,6 +13,9 @@
                 <th>نام</th>
                 <th>شماره تماس</th>
                 <th>نقش</th>
+                <th>نام کاربری</th>
+                <th>رمز عبور</th>
+                <th>عملیات</th>
             </tr>
         </thead>
         <tbody>
@@ -21,6 +24,14 @@
                 <td>{{ user.name }}</td>
                 <td>{{ user.phone }}</td>
                 <td>{{ user.role }}</td>
+                <td>{{ user.username }}</td>
+                <td>{{ user.password }}</td>
+                <td>
+                    <form action="{% url 'delete_user' user.id %}" method="POST">
+                        {% csrf_token %}
+                    <button type="submit" class="delete-button">حذف</button>
+                </form>
+            </td>
             </tr>
             {% endfor %}
         </tbody>

@@ -14,6 +14,8 @@ class User(models.Model):
     name = models.CharField(max_length=255, blank=False)
     phone = models.CharField(max_length=15, blank=False)
     role = models.CharField(max_length=50, blank=False)
+    username = models.CharField(max_length=150, unique=True, blank=False)
+    password = models.CharField(max_length=128, blank=False)
 
     def __str__(self):
         return self.name

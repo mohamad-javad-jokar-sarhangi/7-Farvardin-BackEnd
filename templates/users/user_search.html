@@ -1,0 +1,53 @@
+{% extends 'base.html' %}
+{% block title %}
+جستجوی کاربر
+{% endblock %}
+
+{% block content %}
+<div class="search-container">
+<h2>جستجوی کاربر با شماره تماس</h2>
+
+<form method="GET" action="{% url 'search_user' %}">
+<div class="form-group">
+<label for="phone">شماره تماس کاربر:</label>
+<input type="text" id="phone" name="phone" placeholder="شماره تماس را وارد کنید" required>
+</div>
+<button type="submit" class="button">جستجو</button>
+</form>
+
+{% if user %}
+<div class="result-container">
+<h3>اطلاعات کاربر</h3>
+<table>
+<thead>
+<tr>
+<th>نام</th>
+<th>شماره تماس</th>
+<th>نقش</th>
+<th>نام کاربری</th>
+<th>عملیات</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>{{ user.name }}</td>
+<td>{{ user.phone }}</td>
+<td>{{ user.role }}</td>
+<td>{{ user.username }}</td>
+<td>
+    <form action="{% url 'delete_user' user.id %}" method="POST">
+        {% csrf_token %}
+    <button type="submit" class="delete-button">حذف</button>
+</form>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+{% elif search_attempted %}
+<div class="error-message">
+<p>کاربری با این شماره تماس یافت نشد.</p>
+</div>
+{% endif %}
+</div>
+{% endblock %}

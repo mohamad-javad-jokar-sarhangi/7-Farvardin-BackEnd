@@ -6,3 +6,8 @@ class UserNotRegisterSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserNotRegister
         fields = '__all__'  # تمام فیلدهای مدل را در JSON قرار دهد
+
+class UserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ('name', 'phone','role', 'username', 'password')
