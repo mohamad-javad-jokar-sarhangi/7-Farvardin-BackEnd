@@ -112,3 +112,16 @@ def search_user_view(request):
     
     return render(request, 'users/user_search.html', context)
 
+# search by username password
+class UserLoginAPIView(APIView):
+
+    def post(self, request):
+        username = request.data.get('username')
+        password = request.data.get('password')
+        
+        # بررسی وجود کاربر با username و password
+        try:
+            user = User.objects.get(username=username, password=password)
+            return Response({'exists': True}, status=status.HTTP_200_OK)
+        except User.DoesNotExist:
+            return Response({'exists': False}, status=status.HTTP_404_NOT_FOUND)

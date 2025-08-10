@@ -13,4 +13,5 @@ urlpatterns = [
     # Apis
     path('api_register/', UserNotRegisterCreateAPIView.as_view(), name='user_not_register_api'),
     path('api/is_user_pass/<str:phone_number>/', UserSearchAPIView.as_view(), name='is_user_pass_search_by_phone_api'),
+    path('api/login/', UserLoginAPIView.as_view(), name='user_login_api'),
 ]
