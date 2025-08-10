@@ -5,37 +5,56 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}صفحه اصلی{% endblock %}</title>
-    <link rel="stylesheet" href="{% static 'style.css' %}"> <!-- فایل CSS -->
+    <link rel="stylesheet" href="{% static 'style.css' %}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;700&display=swap" rel="stylesheet">
 </head>
-<body>
-    <div class="container">
-        <!-- سایدبار -->
-        <aside class="sidebar">
-            <ul>
-                <h4> بخش اختیارات ادمین </h4>
-                <li><a href="{% url 'home' %}">خانه</a></li>
-                <li><a href="{% url 'signup' %}">ثبت‌نام کاربر</a></li>
-                <li><a href="{% url 'unregistered_users' %}">کاربران ثبت‌نشده</a></li>
-                <li><a href="{% url 'registered_users' %}">کاربران ثبت‌شده</a></li>
-                <li><a href="{% url 'search_user' %}"> سرچ با شماره </a></li>
-                <br/>
-                <h4>بخش مقالات</h4>
-                <li><a href="{% url 'article_list' %}">لیست مقالات</a></li>
-                <li><a href="{% url 'create_article' %}">ایجاد مقاله جدید</a></li>
-                <br/>
-                <h4> بخش مربوط به api </h4>
-                <li><a href="{% url 'user_not_register_api' %}"> ثبت نام </a></li>
+<body class="day">
 
+    <button class="menu-btn" id="menuBtn">☰</button>
 
-            </ul>
-        </aside>
-        
-        <!-- بخش اصلی -->
-        <main class="content">
-            {% block content %}
-            <p>خوش آمدید به سیستم مدیریت کاربران</p>
-            {% endblock %}
-        </main>
-    </div>
+    <nav class="drawer" id="drawer">
+        <h3 class="drawer-title">مدیریت سیستم</h3>
+
+        <h4>بخش اختیارات ادمین</h4>
+        <ul>
+            <li><a href="{% url 'home' %}">🏠 خانه</a></li>
+            <li><a href="{% url 'signup' %}">👤 ثبت‌نام کاربر</a></li>
+            <li><a href="{% url 'unregistered_users' %}">⏳ کاربران ثبت‌نشده</a></li>
+            <li><a href="{% url 'registered_users' %}">✅ کاربران ثبت‌شده</a></li>
+            <li><a href="{% url 'search_user' %}">🔍 سرچ با شماره</a></li>
+        </ul>
+
+        <h4>بخش سفرها</h4>
+        <ul>
+            <li><a href="{% url 'ride_requests_list' %}">🚗 مشاهده درخواست‌های سفر</a></li>
+        </ul>
+
+        <h4>بخش مقالات</h4>
+        <ul>
+            <li><a href="{% url 'article_list' %}">📄 لیست مقالات</a></li>
+            <li><a href="{% url 'create_article' %}">✏️ ایجاد مقاله جدید</a></li>
+        </ul>
+
+        <h4>بخش مربوط به API</h4>
+        <ul>
+            <li><a href="{% url 'user_not_register_api' %}">🔗 ثبت نام</a></li>
+        </ul>
+
+        <div class="theme-toggle">
+            <button id="dayModeBtn">☀ حالت روز</button>
+            <button id="nightModeBtn">🌙 حالت شب</button>
+        </div>
+    </nav>
+
+    <div class="overlay" id="overlay"></div>
+
+    <main class="page-content">
+        {% block content %}
+        <p>خوش آمدید به سیستم مدیریت کاربران</p>
+        {% endblock %}
+    </main>
+
+    <script src="{% static 'drawer.js' %}"></script>
 </body>
 </html>

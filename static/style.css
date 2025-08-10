@@ -1,267 +1,248 @@
-/* -- تنظیمات کلی -- */
+/* ===== ریست اولیه ===== */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Vazirmatn', sans-serif;
+}
+
 body {
-    font-family: Arial, sans-serif;
-    background-color: rgb(240, 243, 255); /* رنگ پس‌زمینه اصلی */
-    color: rgb(33, 25, 81); /* رنگ متن اصلی */
-    margin: 0;
-    padding: 0;
+    transition: background-color 0.3s, color 0.3s;
+    overflow-x: hidden;
 }
 
-/* -- کانتینر اصلی -- */
-.container {
+/* ===== هدر ثابت ===== */
+.header {
+    position: fixed;
+    top: 0;
+    right: 0;
+    width: 100%;
+    height: 60px;
+    background-color: var(--menu-bg);
     display: flex;
-    flex-direction: row;
-    height: 100vh;
+    align-items: center;
+    justify-content: flex-end;
+    padding: 0 15px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    z-index: 1000;
 }
 
-/* -- سایدبار -- */
-.sidebar {
-    background-color: rgb(131, 111, 255); /* بنفش ملایم برای سایدبار */
-    color: rgb(240, 243, 255); 
-    box-shadow: -3px 0 8px rgba(0, 0, 0, 0.2);
-    width: 200px;
-    padding: 15px;
-    flex-shrink: 0;
-    height: 100%;
-    border-right: 5px solid rgb(21, 245, 186); /* خط جداکننده */
-}
-
-.sidebar a {
-    display: block;
-    padding: 12px 20px; /* حاشیه مشخص‌تر */
-    color: rgb(21, 245, 186); 
-    text-decoration: none;
-    margin-bottom: 8px;
+/* ===== دکمه منو ===== */
+.menu-btn {
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    padding: 10px 12px;
+    font-size: 20px;
     border-radius: 8px;
-    font-weight: bold;
-    background-color: rgba(255, 255, 255, 0.1); 
-    transition: background-color 0.3s ease, color 0.3s ease;
+    cursor: pointer;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+    transition: background 0.3s ease;
+}
+.menu-btn:hover {
+    background: var(--accent-hover);
 }
 
-.sidebar a:hover {
-    background-color: rgb(240, 243, 255); 
-    color: rgb(33, 25, 81); 
-    border-left: 3px solid rgb(131, 111, 255); 
-}
-
-.sidebar ul {
-    list-style-type: none;
-    padding: 0;
-    margin: 0;
-}
-
-.sidebar ul li {
-    margin: 12px 0;
-}
-
-.sidebar ul li a {
-    text-decoration: none;
-    color: rgb(240, 243, 255); 
-    font-weight: bold;
-    display: block;
-}
-
-.sidebar ul li a:hover {
-    color: rgb(21, 245, 186); 
-}
-
-/* -- محتوای اصلی -- */
-.content {
-    flex-grow: 1;
-    padding: 25px;
-    background-color: rgb(240, 243, 255); 
-    color: rgb(33, 25, 81); 
-    box-shadow: inset 0px 0px 5px rgba(0, 0, 0, 0.1);
-    border-radius: 10px;
+/* ===== Drawer ===== */
+.drawer {
+    position: fixed;
+    top: 60px; /* زیر هدر */
+    right: 0;
+    width: 270px;
+    height: calc(100% - 60px);
+    background-color: var(--menu-bg);
+    color: var(--menu-text);
+    box-shadow: -2px 0 10px rgba(0,0,0,0.2);
+    transform: translateX(100%);
+    transition: transform 0.3s ease;
+    z-index: 900; /* زیر هدر */
+    padding: 20px;
     overflow-y: auto;
 }
+.drawer.open {
+    transform: translateX(0);
+}
+.drawer::-webkit-scrollbar {
+    width: 6px;
+}
+.drawer::-webkit-scrollbar-thumb {
+    background: var(--accent);
+    border-radius: 4px;
+}
 
-/* استایل دکمه‌ها */
-.button {
-    display: inline-block;
-    padding: 12px 25px;
-    background-color: rgb(21, 245, 186); 
-    color: rgb(33, 25, 81); 
-    text-decoration: none;
+.drawer-title {
+    text-align: center;
+    margin-bottom: 15px;
     font-weight: bold;
-    font-size: 16px;
-    border-radius: 8px;
-    transition: background-color 0.3s ease;
-    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.2);
+    color: var(--accent);
+}
+.drawer h4 {
+    margin-top: 15px;
+    color: var(--menu-subtitle);
+    font-weight: bold;
+}
+.drawer ul {
+    list-style: none;
+    margin-top: 5px;
+}
+.drawer li a {
+    display: block;
+    padding: 10px;
+    border-radius: 6px;
+    color: var(--menu-text);
+    text-decoration: none;
+    transition: background 0.3s, transform 0.2s;
+}
+.drawer li a:hover {
+    background-color: var(--menu-hover);
+    transform: translateX(-4px);
 }
 
-.button:hover {
-    background-color: rgb(131, 111, 255); 
-    color: rgb(240, 243, 255); 
-}
-
-/* استایل فرم‌ها */
-form {
-    max-width: 450px; /* متناسب با اندازه جدید تکس‌باکس‌ها */
-    margin: 0 auto; /* مرکز کردن فرم */
-    background-color: rgb(255, 255, 255); /* پس‌زمینه سفید فرم */
-    padding: 25px; /* حاشیه بیشتر برای فرم */
-    border-radius: 12px; /* گرد کردن گوشه‌ها برای فرم */
-    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.15); /* سایه فرم */
-}
-
-/* تنظیمات تکس‌باکس‌ها */
-form input[type="text"],
-form input[type="email"],
-form input[type="password"] {
-    width: 90%; /* عرض کامل */
-    padding: 15px; /* افزایش اندازه متن داخل تکس‌باکس */
-    margin-bottom: 20px; /* فاصله بین تکس‌باکس‌ها */
-    border: 3px solid rgb(131, 111, 255); /* خط دور تکس‌باکس */
-    border-radius: 15px; /* گرد کردن لبه‌ها */
-    font-size: 16px; /* افزایش سایز فونت */
-    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1); /* سایه برای زیبایی بیشتر */
-    transition: border-color 0.3s ease;
-}
-
-/* هنگام فوکوس روی تکس‌باکس */
-form input[type="text"]:focus,
-form input[type="email"]:focus,
-form input[type="password"]:focus {
-    border-color: rgb(21, 245, 186); /* تغییر رنگ خط هنگام فوکوس */
-    outline: none;
-    box-shadow: 0px 4px 8px rgba(21, 245, 186, 0.5); /* سایه سبز هنگام فوکوس */
-}
-
-/* تنظیم سایز دکمه‌های فرم */
-form .button {
+/* ===== دکمه‌های تم ===== */
+.theme-toggle {
     margin-top: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+.theme-toggle button {
+    padding: 10px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: background 0.3s;
+}
+#dayModeBtn { background: #ffdd57; color: #000; }
+#nightModeBtn { background: #3a3a3a; color: #fff; }
+#dayModeBtn:hover { background: #ffd633; }
+#nightModeBtn:hover { background: #5a5a5a; }
+
+/* ===== محتوای صفحه ===== */
+.page-content {
+    flex: 1;
+    padding: 80px 40px 40px 40px; /* فاصله از هدر */
+    transition: margin-right 0.3s ease;
+}
+body.drawer-open .page-content {
+    margin-right: 270px; /* وقتی منو بازه محتوا به چپ هل داده میشه */
 }
 
-/* استایل بخش انتخاب نقش */
-form select {
-    width: 100%; /* عرض کامل برای هماهنگی با تکس‌باکس‌ها */
-    padding: 15px; /* افزایش اندازه متن داخل سلکت */
-    margin-bottom: 20px; /* فاصله مناسب با سایر فیلدها */
-    border: 1px solid rgb(131, 111, 255); /* خط دور بخش انتخاب نقش */
-    border-radius: 8px; /* گرد کردن لبه‌ها */
-    font-size: 16px; /* افزایش سایز متن */
-    background-color: rgb(240, 243, 255); /* پس‌زمینه روشن */
-    color: rgb(33, 25, 81); /* متن تیره */
-    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.15); /* سایه برای زیبایی بیشتر */
-    transition: border-color 0.3s ease;
+/* ===== دکمه‌ها ===== */
+.button {
+    background-color: var(--accent);
+    color: #fff;
+    padding: 8px 15px;
+    border: none;
+    border-radius: 6px;
+    font-size: 15px;
+    cursor: pointer;
+    text-decoration: none;
+    transition: background 0.3s;
 }
+.button:hover { background-color: var(--accent-hover); }
 
-/* هنگام فوکوس روی بخش انتخاب نقش */
-form select:focus {
-    border-color: rgb(21, 245, 186); /* تغییر رنگ خط هنگام فوکوس */
+.delete-button {
+    background-color: #dc3545;
+    color: white;
+    padding: 5px 10px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+}
+.delete-button:hover { background-color: #b02a37; }
+
+/* ===== فرم ===== */
+form {
+    max-width: 600px;
+    margin: 0 auto;
+}
+.form-group {
+    margin-bottom: 15px;
+}
+input[type="text"],
+input[type="number"],
+input[type="password"],
+input[type="email"],
+select,
+textarea {
+    width: 100%;
+    padding: 10px;
+    margin-top: 5px;
+    border: 1px solid var(--input-border);
+    border-radius: 6px;
     outline: none;
-    box-shadow: 0px 4px 8px rgba(21, 245, 186, 0.5); /* سایه سبز هنگام فوکوس */
+    transition: border 0.3s, box-shadow 0.3s, background 0.3s;
+    background-color: var(--input-bg);
+    color: var(--text-color);
+}
+input:focus,
+select:focus,
+textarea:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 8px var(--accent);
 }
 
-/* جدول‌ها */
+/* ===== جدول ===== */
 table {
     width: 100%;
     border-collapse: collapse;
     margin-top: 20px;
-    background-color: rgb(240, 243, 255); 
-    color: rgb(33, 25, 81); 
     border-radius: 8px;
     overflow: hidden;
-    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1); 
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
 }
-
-table th, table td {
-    border: 1px solid rgb(131, 111, 255); 
-    padding: 12px 15px;
+th, td {
     text-align: center;
+    padding: 12px;
+    border-bottom: 1px solid var(--table-border);
+}
+th {
+    background-color: var(--table-header);
+    color: var(--table-header-text);
 }
 
-table th {
-    background-color: rgb(21, 245, 186); 
-    color: rgb(33, 25, 81); 
-    font-weight: bold;
-}
-
-table tr:nth-child(even) {
-    background-color: rgba(131, 111, 255, 0.2); 
-}
-
-table tr:hover {
-    background-color: rgba(131, 111, 255, 0.4); 
-}
-
-/* بخش صفحه خانه */
-.home-container {
-    text-align: center;
-    padding: 200px;
-}
-
-.home-container h2 {
-    font-size: 2rem;
-    margin-bottom: 20px;
-    color: rgb(33, 25, 81); 
-}
-
-.home-container p {
-    font-size: 1.2rem;
-    margin-bottom: 30px;
-    color: rgb(131, 111, 255); 
-}
-/* استایل‌های مربوط به مقالات */
-.article-form-container {
-    max-width: 800px;
-    margin: 0 auto;
-}
-
-.article-form-container textarea {
-    width: 95%;
-    min-height: 200px;
-    padding: 15px;
-    margin-bottom: 20px;
-    border: 3px solid rgb(131, 111, 255);
-    border-radius: 15px;
-    font-size: 16px;
-    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
-    transition: border-color 0.3s ease;
-}
-
-.article-form-container textarea:focus {
-    border-color: rgb(21, 245, 186);
-    outline: none;
-    box-shadow: 0px 4px 8px rgba(21, 245, 186, 0.5);
-}
-
-.article-detail-container {
-    max-width: 800px;
-    margin: 0 auto;
-    background-color: white;
-    padding: 25px;
-    border-radius: 12px;
-    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.15);
-}
-
-.article-header {
-    border-bottom: 2px solid rgb(131, 111, 255);
-    padding-bottom: 20px;
-    margin-bottom: 20px;
-}
-
-.article-meta {
-    color: #666;
-    font-size: 0.9em;
+/* ===== پیام خطا ===== */
+.error-message {
+    color: red;
+    background-color: #ffe6e6;
+    padding: 10px;
+    border-radius: 5px;
     margin-top: 10px;
 }
 
-.article-author, .article-date {
-    margin-right: 15px;
+/* ===== تم روز ===== */
+body.day {
+    --menu-bg: #f8f9fa;
+    --menu-text: #333;
+    --menu-hover: rgba(0,0,0,0.07);
+    --menu-subtitle: #666;
+    --accent: #a85bf1;
+    --accent-hover: #8e3ee0;
+    --text-color: #000;
+    --input-bg: #fff;
+    --input-border: #bbb;
+    --table-border: #ddd;
+    --table-header: #eaeaea;
+    --table-header-text: #000;
+    background-color: #ffffff;
+    color: #000;
 }
 
-.article-content {
-    line-height: 1.8;
-    margin-bottom: 30px;
-}
-
-.article-actions {
-    margin-top: 30px;
-    text-align: center;
-}
-
-.error-message {
-    margin-bottom: 20px;
+/* ===== تم شب ===== */
+body.night {
+    --menu-bg: #1f1f1f;
+    --menu-text: #ddd;
+    --menu-hover: rgba(255,255,255,0.1);
+    --menu-subtitle: #bbb;
+    --accent: #20c997;
+    --accent-hover: #18a77c;
+    --text-color: #fff;
+    --input-bg: #2e2e2e;
+    --input-border: #555;
+    --table-border: #444;
+    --table-header: #2c2c2c;
+    --table-header-text: #fff;
+    background-color: #121212;
+    color: #fff;
 }
