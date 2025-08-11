@@ -1,164 +1,164 @@
 /* ===== ریست اولیه ===== */
 * {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-    font-family: 'Vazirmatn', sans-serif;
+    margin: 0; /* حذف فاصله بیرونی همه المنت‌ها */
+    padding: 0; /* حذف فاصله داخلی همه المنت‌ها */
+    box-sizing: border-box; /* محاسبه اندازه با احتساب padding و border */
+    font-family: 'Vazirmatn', sans-serif; /* تعیین فونت پیش‌فرض */
 }
 
 body {
-    transition: background-color 0.3s, color 0.3s;
-    overflow-x: hidden;
+    transition: background-color 0.3s, color 0.3s; /* انیمیشن تغییر رنگ پس‌زمینه و متن */
+    overflow-x: hidden; /* جلوگیری از اسکرول افقی */
 }
 
 /* ===== هدر ثابت ===== */
 .header {
-    position: fixed;
-    top: 0;
-    right: 0;
-    width: 100%;
-    height: 60px;
-    background-color: var(--menu-bg);
-    display: flex;
-    align-items: center;
-    justify-content: flex-end;
-    padding: 0 15px;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-    z-index: 1000;
+    position: fixed; /* ثابت بودن هدر در بالای صفحه */
+    top: 0; /* فاصله از بالا صفر */
+    right: 0; /* چسبیده به سمت راست */
+    width: 100%; /* عرض کامل صفحه */
+    height: 60px; /* ارتفاع هدر */
+    background-color: var(--menu-bg); /* رنگ پس‌زمینه بر اساس تم */
+    display: flex; /* چینش افقی آیتم‌ها */
+    align-items: center; /* وسط‌چین عمودی آیتم‌ها */
+    justify-content: flex-end; /* آیتم‌ها به سمت راست */
+    padding: 0 15px; /* فاصله داخلی از چپ و راست */
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1); /* سایه زیر هدر */
+    z-index: 1000; /* نمایش بالاتر از همه */
 }
 
 /* ===== دکمه منو ===== */
 .menu-btn {
-    background: var(--accent);
-    color: #fff;
-    border: none;
-    padding: 10px 12px;
-    font-size: 20px;
-    border-radius: 8px;
-    cursor: pointer;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.2);
-    transition: background 0.3s ease;
+    background: var(--accent); /* رنگ پس‌زمینه دکمه منو */
+    color: #fff; /* رنگ متن دکمه */
+    border: none; /* بدون مرز */
+    padding: 10px 12px; /* فاصله داخلی */
+    font-size: 20px; /* اندازه متن/آیکون */
+    border-radius: 8px; /* گوشه‌های گرد */
+    cursor: pointer; /* نشانگر موس به شکل دست */
+    box-shadow: 0 4px 10px rgba(0,0,0,0.2); /* سایه دکمه */
+    transition: background 0.3s ease; /* انیمیشن تغییر رنگ پس‌زمینه */
 }
 .menu-btn:hover {
-    background: var(--accent-hover);
+    background: var(--accent-hover); /* تغییر رنگ هنگام هاور */
 }
 
 /* ===== Drawer ===== */
 .drawer {
-    position: fixed;
-    top: 60px; /* زیر هدر */
-    right: 0;
-    width: 270px;
-    height: calc(100% - 60px);
-    background-color: var(--menu-bg);
-    color: var(--menu-text);
-    box-shadow: -2px 0 10px rgba(0,0,0,0.2);
-    transform: translateX(100%);
-    transition: transform 0.3s ease;
-    z-index: 900; /* زیر هدر */
-    padding: 20px;
-    overflow-y: auto;
+    position: fixed; /* ثابت بودن منو */
+    top: 60px; /* دقیقا زیر هدر */
+    right: 5; /* کنار راست صفحه */
+    width: 270px; /* عرض منو */
+    height: calc(100% - 60px); /* ارتفاع کشیده تا پایین صفحه منهای هدر */
+    background-color: var(--menu-bg); /* رنگ پس‌زمینه متناسب با تم */
+    color: var(--menu-text); /* رنگ نوشته‌ها */
+    box-shadow: -2px 0 10px rgba(0,0,0,0.2); /* سایه سمت چپ منو */
+    transform: translateX(100%); /* پنهان کردن منو خارج از دید */
+    transition: transform 0.3s ease; /* انیمیشن باز و بسته شدن */
+    z-index: 900; /* زیر هدر قرار بگیرد */
+    padding: 10px; /* فاصله داخلی */
+    overflow-y: auto; /* اسکرول عمودی در صورت نیاز */
 }
 .drawer.open {
-    transform: translateX(0);
+    transform: translateX(0); /* نمایش کامل منو */
 }
 .drawer::-webkit-scrollbar {
-    width: 6px;
+    width: 6px; /* عرض اسکرول‌بار */
 }
 .drawer::-webkit-scrollbar-thumb {
-    background: var(--accent);
-    border-radius: 4px;
+    background: var(--accent); /* رنگ اسکرول‌بار */
+    border-radius: 10px; /* گوشه گرد اسکرول‌بار */
 }
 
 .drawer-title {
-    text-align: center;
-    margin-bottom: 15px;
-    font-weight: bold;
-    color: var(--accent);
+    text-align: center; /* وسط‌چین کردن متن */
+    margin-bottom: 15px; /* فاصله زیر عنوان */
+    font-weight: bold; /* ضخیم‌کردن فونت */
+    color: var(--accent); /* رنگ عنوان */
 }
 .drawer h4 {
-    margin-top: 15px;
-    color: var(--menu-subtitle);
-    font-weight: bold;
+    margin-top: 15px; /* فاصله بالا */
+    color: var(--menu-subtitle); /* رنگ زیرعنوان */
+    font-weight: bold; /* متن پررنگ */
 }
 .drawer ul {
-    list-style: none;
-    margin-top: 5px;
+    list-style: none; /* حذف نقطه یا شماره لیست */
+    margin-top: 5px; /* فاصله از بالا */
 }
 .drawer li a {
-    display: block;
-    padding: 10px;
-    border-radius: 6px;
-    color: var(--menu-text);
-    text-decoration: none;
-    transition: background 0.3s, transform 0.2s;
+    display: block; /* لینک‌ها به صورت بلوک */
+    padding: 10px; /* فاصله داخلی */
+    border-radius: 5px; /* گوشه گرد */
+    color: var(--menu-text); /* رنگ متن لینک */
+    text-decoration: none; /* حذف خط زیر لینک */
+    transition: background 0.3s, transform 0.2s; /* انیمیشن تغییر رنگ و تکان خوردن */
 }
 .drawer li a:hover {
-    background-color: var(--menu-hover);
-    transform: translateX(-4px);
+    background-color: var(--menu-hover); /* رنگ پس‌زمینه هنگام هاور */
+    transform: translateX(-4px); /* حرکت کمی به سمت چپ */
 }
 
 /* ===== دکمه‌های تم ===== */
 .theme-toggle {
-    margin-top: 20px;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
+    margin-top: 20px; /* فاصله از بالا */
+    display: flex; /* نمایش فلکس */
+    flex-direction: column; /* زیر هم قرار گرفتن */
+    gap: 10px; /* فاصله بین دکمه‌ها */
 }
 .theme-toggle button {
-    padding: 10px;
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
-    font-weight: bold;
-    transition: background 0.3s;
+    padding: 15px; /* فاصله داخلی */
+    border: none; /* بدون مرز */
+    border-radius: 10px; /* گوشه گرد */
+    cursor: pointer; /* نمایش دست هنگام هاور */
+    font-weight: bold; /* متن پررنگ */
+    transition: background 0.3s; /* تغییر رنگ پس‌زمینه نرم */
 }
-#dayModeBtn { background: #ffdd57; color: #000; }
-#nightModeBtn { background: #3a3a3a; color: #fff; }
-#dayModeBtn:hover { background: #ffd633; }
-#nightModeBtn:hover { background: #5a5a5a; }
+#dayModeBtn { background: #ffdd57; color: #000; } /* دکمه حالت روز */
+#nightModeBtn { background: #3a3a3a; color: #fff; } /* دکمه حالت شب */
+#dayModeBtn:hover { background: #ffd633; } /* رنگ هاور حالت روز */
+#nightModeBtn:hover { background: #5a5a5a; } /* رنگ هاور حالت شب */
 
 /* ===== محتوای صفحه ===== */
 .page-content {
-    flex: 1;
-    padding: 80px 40px 40px 40px; /* فاصله از هدر */
-    transition: margin-right 0.3s ease;
+    flex: 1; /* پر کردن فضای باقی‌مانده */
+    padding: 80px 40px 40px 40px; /* فاصله از لبه‌ها */
+    transition: margin-right 0.3s ease; /* انیمیشن جا‌به‌جایی محتوا */
 }
 body.drawer-open .page-content {
-    margin-right: 270px; /* وقتی منو بازه محتوا به چپ هل داده میشه */
+    margin-right: 270px; /* وقتی منو بازه، محتوا به چپ میره */
 }
 
 /* ===== دکمه‌ها ===== */
 .button {
-    background-color: var(--accent);
-    color: #fff;
-    padding: 8px 15px;
-    border: none;
-    border-radius: 6px;
-    font-size: 15px;
-    cursor: pointer;
-    text-decoration: none;
-    transition: background 0.3s;
+    background-color: var(--accent); /* رنگ دکمه */
+    color: #fff; /* رنگ متن */
+    padding: 8px 15px; /* فاصله داخلی */
+    border: none; /* بدون حاشیه */
+    border-radius: 10px; /* گوشه گرد */
+    font-size: 18px; /* اندازه متن */
+    cursor: pointer; /* شکل دست هنگام هاور */
+    text-decoration: none; /* حذف خط زیر متن */
+    transition: background 0.3s; /* تغییر رنگ نرم */
 }
-.button:hover { background-color: var(--accent-hover); }
+.button:hover { background-color: var(--accent-hover); } /* حالت هاور */
 
 .delete-button {
-    background-color: #dc3545;
-    color: white;
-    padding: 5px 10px;
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
+    background-color: #dc3545; /* قرمز هشدار */
+    color: white; /* نوشته سفید */
+    padding: 5px 10px; /* فاصله داخلی */
+    border: none; /* بدون مرز */
+    border-radius: 6px; /* گوشه گرد */
+    cursor: pointer; /* شکل دست هنگام هاور */
 }
-.delete-button:hover { background-color: #b02a37; }
+.delete-button:hover { background-color: #b02a37; } /* قرمز تیره در هاور */
 
 /* ===== فرم ===== */
 form {
-    max-width: 600px;
-    margin: 0 auto;
+    max-width: 600px; /* حداکثر عرض فرم */
+    margin: 0 auto; /* وسط‌چین */
 }
 .form-group {
-    margin-bottom: 15px;
+    margin-bottom: 15px; /* فاصله بین فیلدها */
 }
 input[type="text"],
 input[type="number"],
@@ -166,83 +166,164 @@ input[type="password"],
 input[type="email"],
 select,
 textarea {
-    width: 100%;
-    padding: 10px;
-    margin-top: 5px;
-    border: 1px solid var(--input-border);
-    border-radius: 6px;
-    outline: none;
-    transition: border 0.3s, box-shadow 0.3s, background 0.3s;
-    background-color: var(--input-bg);
-    color: var(--text-color);
+    width: 100%; /* پر کردن عرض */
+    padding: 10px; /* فاصله داخلی */
+    margin-top: 5px; /* فاصله از بالا */
+    border: 1px solid var(--input-border); /* رنگ مرز بر اساس تم */
+    border-radius: 6px; /* گوشه گرد */
+    outline: none; /* حذف خط دور پیش‌فرض */
+    transition: border 0.3s, box-shadow 0.3s, background 0.3s; /* انیمیشن تغییر ظاهر */
+    background-color: var(--input-bg); /* رنگ پس‌زمینه ورودی */
+    color: var(--text-color); /* رنگ متن ورودی */
 }
 input:focus,
 select:focus,
 textarea:focus {
-    border-color: var(--accent);
-    box-shadow: 0 0 8px var(--accent);
+    border-color: var(--accent); /* تغییر رنگ مرز هنگام فوکوس */
+    box-shadow: 0 0 8px var(--accent); /* سایه رنگی هنگام فوکوس */
 }
 
 /* ===== جدول ===== */
 table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-top: 20px;
-    border-radius: 8px;
-    overflow: hidden;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    width: 100%; /* عرض کامل */
+    border-collapse: collapse; /* حذف فاصله بین سلول‌ها */
+    margin-top: 20px; /* فاصله از بالا */
+    border-radius: 8px; /* گوشه گرد */
+    overflow: hidden; /* جلوگیری از بیرون‌زدگی */
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1); /* سایه جدول */
 }
 th, td {
-    text-align: center;
-    padding: 12px;
-    border-bottom: 1px solid var(--table-border);
+    text-align: center; /* وسط‌چین متن */
+    padding: 12px; /* فاصله داخلی سلول */
+    border-bottom: 1px solid var(--table-border); /* خط زیر هر ردیف */
 }
 th {
-    background-color: var(--table-header);
-    color: var(--table-header-text);
+    background-color: var(--table-header); /* رنگ پس‌زمینه سرستون */
+    color: var(--table-header-text); /* رنگ متن سرستون */
 }
 
 /* ===== پیام خطا ===== */
 .error-message {
-    color: red;
-    background-color: #ffe6e6;
-    padding: 10px;
-    border-radius: 5px;
-    margin-top: 10px;
+    color: red; /* رنگ متن خطا */
+    background-color: #ffe6e6; /* پس‌زمینه صورتی روشن */
+    padding: 10px; /* فاصله داخلی */
+    border-radius: 5px; /* گوشه گرد */
+    margin-top: 10px; /* فاصله از بالا */
 }
 
 /* ===== تم روز ===== */
 body.day {
-    --menu-bg: #f8f9fa;
-    --menu-text: #333;
-    --menu-hover: rgba(0,0,0,0.07);
-    --menu-subtitle: #666;
-    --accent: #a85bf1;
-    --accent-hover: #8e3ee0;
-    --text-color: #000;
-    --input-bg: #fff;
-    --input-border: #bbb;
-    --table-border: #ddd;
-    --table-header: #eaeaea;
-    --table-header-text: #000;
-    background-color: #ffffff;
-    color: #000;
+    --menu-bg: #f8f9fa; /* پس‌زمینه منو */
+    --menu-text: #333; /* متن منو */
+    --menu-hover: rgba(0,0,0,0.07); /* هاور منو */
+    --menu-subtitle: #666; /* زیرعنوان منو */
+    --accent: #a85bf1; /* رنگ اصلی */
+    --accent-hover: #8e3ee0; /* رنگ هاور اصلی */
+    --text-color: #000; /* رنگ متن کلی */
+    --input-bg: #fff; /* پس‌زمینه فیلدها */
+    --input-border: #bbb; /* مرز فیلدها */
+    --table-border: #ddd; /* مرز جدول */
+    --table-header: #eaeaea; /* پس‌زمینه سرجدول */
+    --table-header-text: #000; /* رنگ متن سرجدول */
+    background-color: #ffffff; /* پس‌زمینه کل صفحه */
+    color: #000; /* رنگ متن کل صفحه */
 }
 
 /* ===== تم شب ===== */
 body.night {
-    --menu-bg: #1f1f1f;
-    --menu-text: #ddd;
-    --menu-hover: rgba(255,255,255,0.1);
-    --menu-subtitle: #bbb;
-    --accent: #20c997;
-    --accent-hover: #18a77c;
-    --text-color: #fff;
-    --input-bg: #2e2e2e;
-    --input-border: #555;
-    --table-border: #444;
-    --table-header: #2c2c2c;
-    --table-header-text: #fff;
-    background-color: #121212;
+    --menu-bg: #1f1f1f; /* پس‌زمینه منو */
+    --menu-text: #ddd; /* متن منو */
+    --menu-hover: rgba(255,255,255,0.1); /* هاور منو */
+    --menu-subtitle: #bbb; /* زیرعنوان منو */
+    --accent: #20c997; /* رنگ اصلی */
+    --accent-hover: #18a77c; /* رنگ هاور اصلی */
+    --text-color: #fff; /* رنگ متن کلی */
+    --input-bg: #2e2e2e; /* پس‌زمینه فیلد */
+    --input-border: #555; /* رنگ مرز فیلد */
+    --table-border: #444; /* رنگ خط جدول */
+    --table-header: #2c2c2c; /* پس‌زمینه سرجدول */
+    --table-header-text: #fff; /* رنگ متن سرجدول */
+    background-color: #121212; /* پس‌زمینه کل صفحه */
+    color: #fff; /* رنگ متن کل صفحه */
+}
+
+/* Article Detail Page */
+.article-detail-container {
+    max-width: 900px;
+    margin: 50px auto;
+    padding: 20px 30px;
+    background-color: var(--card-bg, #1e1e1e);
+    color: var(--text-color, #fff);
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+    animation: fadeIn 0.4s ease-in-out;
+}
+
+.article-header {
+    border-bottom: 2px solid rgba(255,255,255,0.1);
+    padding-bottom: 15px;
+    margin-bottom: 25px;
+}
+
+.article-header h1 {
+    font-size: 1.8rem;
+    font-weight: bold;
+    margin-bottom: 10px;
+    color: var(--accent-color, #00d084);
+}
+
+.article-meta {
+    font-size: 0.9rem;
+    opacity: 0.85;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+}
+
+.article-content {
+    font-size: 1.05rem;
+    line-height: 1.8;
+    margin-bottom: 30px;
+    text-align: justify;
+}
+
+.article-actions {
+    text-align: left;
+}
+
+.article-actions .button {
+    display: inline-block;
+    padding: 10px 20px;
+    background-color: var(--accent-color, #00d084);
     color: #fff;
+    text-decoration: none;
+    font-size: 0.95rem;
+    font-weight: bold;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+}
+
+.article-actions .button:hover {
+    background-color: #00b374;
+    transform: translateY(-2px);
+}
+
+/* Fade in animation */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* شب/روز سازگاری */
+body.light-mode .article-detail-container {
+    background-color: #fff;
+    color: #222;
+}
+
+body.light-mode .article-header h1 {
+    color: #0a7d5c;
+}
+
+body.light-mode .article-meta {
+    opacity: 0.75;
 }

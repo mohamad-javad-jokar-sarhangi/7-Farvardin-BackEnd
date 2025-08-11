@@ -18,10 +18,10 @@ from django.contrib import admin
 from django.urls import path , include
 from users.views import home_view
 from rest_framework.routers import DefaultRouter
-from ride.views import TripRequestViewSet
+from ride.views import DriverRideRequestListView, AcceptRideRequestView
 
-router = DefaultRouter()
-router.register(r'rides', TripRequestViewSet)
+
+
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -29,7 +29,8 @@ urlpatterns = [
     path('users/', include('users.urls')), 
     path('articles/', include('article.urls')),
     path('articles/', include('article.urls')),
-    path('', include(router.urls)), 
-    path('ride/', include('ride.urls')),
-
+    
+    # API های راننده
+    path('api/driver/requests/', DriverRideRequestListView.as_view(), name='driver-requests'),
+    path('api/driver/requests/<int:pk>/accept/', AcceptRideRequestView.as_view(), name='accept-ride'),
 ]

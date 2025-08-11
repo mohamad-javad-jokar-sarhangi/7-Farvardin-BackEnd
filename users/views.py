@@ -6,6 +6,8 @@ from rest_framework.response import Response
 from rest_framework import status
 from .serializers import UserNotRegisterSerializer
 from .serializers import UserSerializer
+from .forms import UserForm
+from django.http import JsonResponse
 
 # API
 # View برای ثبت‌نام UserNotRegister api
@@ -18,15 +20,23 @@ class UserNotRegisterCreateAPIView(APIView):
             return Response({'message': 'User added successfully'}, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
-class UserSearchAPIView(APIView):
-        
-        def get(self, request, phone_number):
-            try:
-                user = User.objects.get(phone=phone_number)
-                serializer = UserSerializer(user)
-                return Response(serializer.data, status=status.HTTP_200_OK)
-            except User.DoesNotExist:
-                return Response({"message": "کاربر تایید نشده"}, status=status.HTTP_404_NOT_FOUND)
+
+class UserSearchAPIView(APIView):        
+    def get(self, request, phone_number):
+        try:
+            user = User.objects.get(phone=phone_number)
+            serializer = UserSerializer(user)
+            return JsonResponse(
+                serializer.data,
+                json_dumps_params={'ensure_ascii': False},
+                safe=False
+            )
+        except User.DoesNotExist:
+            return JsonResponse(
+                {"message": "کاربر تایید نشده"},
+                json_dumps_params={'ensure_ascii': False},
+                status=404
+            )
 
 # For Panel Admin-------------------------------------------------------------------------------------
 def home_view(request):
@@ -35,13 +45,14 @@ def home_view(request):
 # ثبت‌نام کاربر جدید
 def signup_view(request):
     if request.method == 'POST':
-        form = UserNotRegisterForm(request.POST)
+        form = UserForm(request.POST)
         if form.is_valid():
             form.save()
-            return render(request, 'users/signup_success.html')  # موفقیت در ثبت‌نام
+            return render(request, 'users/signup_success.html')
     else:
-        form = UserNotRegisterForm()
+        form = UserForm()
     return render(request, 'users/signup.html', {'form': form})
+
 
 # نمایش کاربران ثبت‌نشده
 def unregistered_users_view(request):
@@ -60,6 +71,7 @@ def approve_user(request, user_id):
                 name=user_not_registered.name,
                 phone=user_not_registered.phone,
                 role=user_not_registered.role,
+                location=user_not_registered.location,
                 username=form.cleaned_data['username'],
                 password=form.cleaned_data['password']
             )
@@ -69,7 +81,8 @@ def approve_user(request, user_id):
         form = UserApproveForm(initial={
             'name': user_not_registered.name,
             'phone': user_not_registered.phone,
-            'role': user_not_registered.role
+            'role': user_not_registered.role,
+            'location': user_not_registered.location,
         })
     return render(request, 'users/approve_user.html', {'form': form})
 
@@ -125,3 +138,16 @@ class UserLoginAPIView(APIView):
             return Response({'exists': True}, status=status.HTTP_200_OK)
         except User.DoesNotExist:
             return Response({'exists': False}, status=status.HTTP_404_NOT_FOUND)
+
+
+# views.py
+def create_user_direct_view(request):
+    if request.method == 'POST':
+        form = UserForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return render(request, 'users/signup_success.html')
+    else:
+        form = UserForm()
+    return render(request, 'users/signup.html', {'form': form})
+

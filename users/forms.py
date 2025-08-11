@@ -28,11 +28,28 @@ class UserNotRegisterForm(forms.ModelForm):
 class UserApproveForm(forms.ModelForm):
     class Meta:
         model = User
-        fields = ['name', 'phone', 'role', 'username', 'password']
+        fields = ['name', 'phone', 'role', 'username', 'password','location']
         widgets = {
             'name': forms.TextInput(attrs={'class': 'form-control', 'readonly': True}),
             'phone': forms.TextInput(attrs={'class': 'form-control', 'readonly': True}),
             'role': forms.TextInput(attrs={'class': 'form-control', 'readonly': True}),
+            'location': forms.TextInput(attrs={'class': 'form-control', 'readonly': True}),
             'username': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'نام کاربری'}),
             'password': forms.PasswordInput(attrs={'class': 'form-control', 'placeholder': 'رمز عبور'}),
         }
+
+
+# forms.py
+class UserForm(forms.ModelForm):
+    class Meta:
+        model = User
+        fields = ['name', 'phone', 'role', 'username', 'password', 'location']
+        widgets = {
+            'name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'نام'}),
+            'phone': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'شماره تماس'}),
+            'role': forms.Select(attrs={'class': 'form-control'}),
+            'username': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'نام کاربری'}),
+            'password': forms.PasswordInput(attrs={'class': 'form-control', 'placeholder': 'رمز عبور'}),
+            'location': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'محل سکونت'}),
+        }
+      

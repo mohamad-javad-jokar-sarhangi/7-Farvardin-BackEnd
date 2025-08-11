@@ -1,47 +1,71 @@
-from rest_framework import viewsets
-from .models import TripRequest
-from .Serializer import TripRequestSerializer 
-from django.shortcuts import render
-from .models import TripRequest
-from django.db.models import Q
-from users.models import User
-
-class TripRequestViewSet(viewsets.ModelViewSet):
-    queryset = TripRequest.objects.all().order_by('-created_at')
-    serializer_class = TripRequestSerializer
+from rest_framework import generics, status
+from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated
+from django.shortcuts import get_object_or_404
+from .models import RideRequest, DriverQueue
+from .Serializer import RideRequestSerializer
 
 
+class DriverRideRequestListView(generics.ListAPIView):
+    serializer_class = RideRequestSerializer
+    permission_classes = [IsAuthenticated]
 
-def ride_requests_list(request):
-    query_name = request.GET.get('passenger_name', '')
-    query_start_date = request.GET.get('start_date', '')
-    query_end_date = request.GET.get('end_date', '')
+    def get_queryset(self):
+        user = self.request.user
+        if not getattr(user, 'is_driver', False):
+            return RideRequest.objects.none()
 
-    trip_requests = TripRequest.objects.all().order_by('-created_at')
+        # درخواست‌های شب قبل → همه راننده‌ها می‌بینند
+        scheduled = RideRequest.objects.filter(
+            status='pending', request_type='scheduled'
+        )
 
-    # فیلتر بر اساس نام مسافر
-    if query_name:
-        trip_requests = trip_requests.filter(passenger__name__icontains=query_name)
+        # درخواست‌های عادی → فقط اگر راننده نفر اول صف باشد
+        normal_requests = []
+        queues = DriverQueue.objects.filter(driver=user, position=1)
+        for q in queues:
+            qs = RideRequest.objects.filter(
+                status='pending',
+                request_type='normal',
+                origin=q.location
+            ) | RideRequest.objects.filter(
+                status='pending',
+                request_type='normal',
+                destination=q.location
+            )
+            normal_requests.extend(list(qs))
 
-    # فیلتر تاریخ
-    if query_start_date:
-        trip_requests = trip_requests.filter(created_at__date__gte=query_start_date)
-    if query_end_date:
-        trip_requests = trip_requests.filter(created_at__date__lte=query_end_date)
-
-    context = {
-        'trip_requests': trip_requests,
-        'passenger_name': query_name,
-        'start_date': query_start_date,
-        'end_date': query_end_date,
-    }
-    return render(request, 'ride/ride_requests_list.html', context)
+        return (
+            scheduled | RideRequest.objects.filter(id__in=[r.id for r in normal_requests])
+        ).distinct()
 
 
-# این ویو برای پیشنهاد نام مسافر (AJAX)
-from django.http import JsonResponse
+class AcceptRideRequestView(generics.GenericAPIView):
+    permission_classes = [IsAuthenticated]
 
-def passenger_name_suggestions(request):
-    term = request.GET.get('term', '')
-    suggestions = list(User.objects.filter(name__icontains=term).values_list('name', flat=True)[:10])
-    return JsonResponse(suggestions, safe=False)
+    def post(self, request, pk):
+        user = request.user
+        ride_request = get_object_or_404(RideRequest, id=pk, status='pending')
+
+        # بررسی مجاز بودن
+        if ride_request.request_type == 'scheduled':
+            pass  # همه راننده‌ها مجازند
+        elif ride_request.request_type == 'normal':
+            in_queue_first = DriverQueue.objects.filter(
+                driver=user, position=1
+            ).filter(location__in=[ride_request.origin, ride_request.destination]).exists()
+            if not in_queue_first:
+                return Response({'detail': 'شما مجاز به پذیرش این درخواست نیستید'}, status=403)
+
+        # تغییر وضعیت و ثبت راننده
+        ride_request.driver = user
+        ride_request.status = 'accepted'
+        ride_request.save()
+
+        # اگر درخواست عادی بود → حذف راننده از صف مربوطه
+        if ride_request.request_type == 'normal':
+            DriverQueue.objects.filter(
+                driver=user, location__in=[ride_request.origin, ride_request.destination]
+            ).delete()
+
+        return Response({'detail': 'درخواست با موفقیت تایید شد'})
