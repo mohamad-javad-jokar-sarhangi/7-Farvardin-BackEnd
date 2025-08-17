@@ -11,7 +11,6 @@ class TripRequestViewSet(viewsets.ModelViewSet):
     serializer_class = TripRequestSerializer
 
 
-
 def ride_requests_list(request):
     query_name = request.GET.get('passenger_name', '')
     query_start_date = request.GET.get('start_date', '')
