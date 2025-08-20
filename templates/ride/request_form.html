@@ -11,6 +11,20 @@
 
 <form method="post">
     {% csrf_token %}
+    <label>نام مسافر</label><br>
+    <input type="text" name="passenger_name" required><br><br>
+
+    <label>شماره تماس</label><br>
+    <input type="text" name="passenger_phone" required><br><br>
+
+    <label for="request_type">نوع درخواست:</label>
+    <select id="request_type" name="request_type" required>
+        <option value='درخواست دربست'>درخواست دربست</option>
+        <option value='درخواست عادی' selected>درخواست عادی</option>
+        <option value='عجله دارم (حساب بقیه میکنم)'>عجله دارم (حساب بقیه میکنم)</option>
+    </select>
+
+
     <label>مبدأ (روستا)</label><br>
     <input type="text" name="origin" required><br><br>
 

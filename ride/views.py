@@ -3,7 +3,8 @@ from rest_framework.response import Response
 from django.shortcuts import get_object_or_404, render
 from .models import TripRequest, DriverQueue, DriverAcceptance
 from .Serializer import TripRequestSerializer, DriverQueueSerializer, DriverAcceptanceSerializer
-
+from users.models import User
+from django.shortcuts import redirect
 # مسافر درخواست می‌دهد
 class CreateTripView(generics.CreateAPIView):
     serializer_class = TripRequestSerializer
@@ -56,21 +57,44 @@ class AcceptTripView(generics.CreateAPIView):
         return Response({"message": "شما نفر اول صف مجاز نیستید"}, status=status.HTTP_400_BAD_REQUEST)
 
 
-# صفحات HTML ساده
 
+
+
+   # دقیقا از اپ user ایمپورت مستقیم
+
+
+# ایجاد درخاست ماشین
 def request_form_page(request):
     message = None
     if request.method == "POST":
+        default_passenger = User.objects.first()  # برای تست بدون لاگین
+
         TripRequest.objects.create(
-            passenger=request.user,
+            passenger=default_passenger,
+            passenger_name=request.POST.get("passenger_name"),   # گرفتن نام مسافر
+            passenger_phone=request.POST.get("passenger_phone"), # گرفتن شماره تماس
             origin=request.POST.get("origin"),
-            destination=request.POST.get("destination")
+            destination=request.POST.get("destination"),
+            request_type=request.POST.get("request_type")  # اگه تو فرم داری
         )
+
         message = "درخواست ثبت شد."
+
     return render(request, "ride/request_form.html", {"message": message})
 
 
-
+# مشاده درخاست خای ماشین 
 def queue_status_page(request):
     trips = TripRequest.objects.all()
     return render(request, "ride/queue_status.html", {"trips": trips})
+
+
+# پاک کردن درخاست های ماشین 
+def delete_trip(request, trip_id):
+    trip = get_object_or_404(TripRequest, id=trip_id)
+    trip.delete()
+    return redirect('queue_status')
+
+
+#
+

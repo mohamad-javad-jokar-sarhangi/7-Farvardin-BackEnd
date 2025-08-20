@@ -1,4 +1,6 @@
 from django.urls import path
+from . import views
+
 from .views import (
     CreateTripView, JoinDriverQueueView, AcceptTripView,
     request_form_page, queue_status_page
@@ -13,4 +15,5 @@ urlpatterns = [
     # HTML
     path('request-form/', request_form_page, name='request_form'),
     path('queue-status/', queue_status_page, name='queue_status'),
+    path('delete-trip/<int:trip_id>/', views.delete_trip, name='delete_trip'),
 ]
