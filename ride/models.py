@@ -7,6 +7,7 @@ class TripRequest(models.Model):
     REQUEST_TYPE_CHOICES = [
         ('instant', 'درخواست فوری'),
         ('scheduled', 'درخواست زمان‌بندی شده'),
+        ('vip', 'درخواست دربست'),
     ]
 
     SERVICE_TYPE_CHOICES = [
