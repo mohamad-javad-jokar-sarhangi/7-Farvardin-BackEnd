@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+
+{% block title %}وضعیت سفرها{% endblock %}
+
+{% block content %}
+<h1>🚦 سفرهای موجود</h1>
+
+{% if trips %}
+    <table border="1" cellpadding="5">
+        <tr>
+            <th>مسافر</th>
+            <th>مبدأ</th>
+            <th>مقصد</th>
+            <th>وضعیت</th>
+        </tr>
+        {% for trip in trips %}
+        <tr>
+            <td>{{ trip.passenger }}</td>
+            <td>{{ trip.origin }}</td>
+            <td>{{ trip.destination }}</td>
+            <td>{{ trip.status }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+{% else %}
+    <p>هیچ درخواستی ثبت نشده است.</p>
+{% endif %}
+{% endblock %}

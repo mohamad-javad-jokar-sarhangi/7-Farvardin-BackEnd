@@ -144,4 +144,3 @@ CORS_ALLOW_HEADERS = [
     'authorization',
 ]
 ALLOWED_HOSTS = ['*']
-

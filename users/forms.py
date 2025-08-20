@@ -3,20 +3,18 @@ from .models import UserNotRegister , User
 
 class UserNotRegisterForm(forms.ModelForm):
     ROLE_CHOICES = [
-        ("عادی", "عادی"),
-        ("راننده", "راننده"),
-        ("فروشنده", "فروشنده"),
-        ("شورا", "شورا"),
-         ("دهیار", "دهیار"),
-        
+        ("مسافر", "مسافر"),
+        ("راننده", "راننده"),        
     ]
 
     class Meta:
-        model = UserNotRegister
-        fields = ['name', 'phone', 'role']
+        model = User
+        fields = ['name', 'phone', 'role' ,'username','password']
         widgets = {
             'name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'نام'}),
             'phone': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'شماره تماس'}),
+            'username': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'نام کاربری'}),
+            'password': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'رمز ورود'}),
         }
     
     # تغییر نقش به یک فیلد انتخابی

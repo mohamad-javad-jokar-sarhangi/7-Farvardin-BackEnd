@@ -1,14 +1,16 @@
-from django.urls import path, include
-from rest_framework.routers import DefaultRouter
-from ride.views import TripRequestViewSet
-from . import views
-
-
-router = DefaultRouter()
-router.register(r'rides', TripRequestViewSet)
+from django.urls import path
+from .views import (
+    CreateTripView, JoinDriverQueueView, AcceptTripView,
+    request_form_page, queue_status_page
+)
 
 urlpatterns = [
-    path('api/', include(router.urls)),
-    path('requests/', views.ride_requests_list, name='ride_requests_list'),
-    path('passenger-suggestions/', views.passenger_name_suggestions, name='passenger_name_suggestions'),
+    # API
+    path('trip/create/', CreateTripView.as_view(), name='create-trip'),
+    path('driver/join-queue/', JoinDriverQueueView.as_view(), name='join-driver-queue'),
+    path('driver/accept-trip/', AcceptTripView.as_view(), name='accept-trip'),
+
+    # HTML
+    path('request-form/', request_form_page, name='request_form'),
+    path('queue-status/', queue_status_page, name='queue_status'),
 ]

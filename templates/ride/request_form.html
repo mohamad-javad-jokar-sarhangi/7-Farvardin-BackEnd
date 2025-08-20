@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+
+{% block title %}ایجاد درخواست سفر{% endblock %}
+
+{% block content %}
+<h1>📌 ایجاد درخواست سفر</h1>
+
+{% if message %}
+    <p style="color: green;">{{ message }}</p>
+{% endif %}
+
+<form method="post">
+    {% csrf_token %}
+    <label>مبدأ (روستا)</label><br>
+    <input type="text" name="origin" required><br><br>
+
+    <label>مقصد (شهر)</label><br>
+    <input type="text" name="destination" required value="شهر"><br><br>
+
+    <button type="submit">ثبت درخواست</button>
+</form>
+
+<hr>
+<a href="{% url 'queue_status' %}">🚗 وضعیت سفرها</a>
+{% endblock %}
