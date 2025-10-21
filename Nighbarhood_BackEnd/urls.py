@@ -18,9 +18,6 @@ from django.contrib import admin
 from django.urls import path , include
 from users.views import home_view
 from rest_framework.routers import DefaultRouter
-from ride.views import JoinDriverQueueView, AcceptTripView
-
-
 
 
 urlpatterns = [

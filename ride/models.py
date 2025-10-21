@@ -11,39 +11,36 @@ class TripRequest(models.Model):
     passenger_phone = models.CharField(max_length=20)   # شماره تماس
     origin = models.CharField(max_length=100)           # مبدأ (روستا)
     destination = models.CharField(max_length=100)      # مقصد (شهر)
-    passenger = models.ForeignKey(User, on_delete=models.CASCADE, related_name='trip_requests')
     request_type = models.CharField(max_length=30, choices=REQUEST_TYPES, default='normal')  # نوع درخواست
-
+    request_time = models.DateTimeField(auto_now_add=True)  # زمان درخواست
+    
+    
+     # ➜ فیلد جدید برای راننده‌ای که درخواست را قبول کرده
+    accepted_by = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='accepted_trips'
+    )
+    
     def __str__(self):
         return f"{self.passenger_name} - {self.origin} to {self.destination}"
 
 
 class DriverQueue(models.Model):
-    driver = models.ForeignKey(User, on_delete=models.CASCADE, related_name='queue_positions')
-    queue_type = models.CharField(
-        max_length=20,
-        choices=[
-            ('village', 'صف روستا'),
-            ('city', 'صف شهر'),
-        ]
-    )
-    location_name = models.CharField(max_length=255)
-    position = models.PositiveIntegerField(default=0)
+    DIRECTION_CHOICES = [
+        ('village_to_city', 'روستا به شهر'),
+        ('city_to_village', 'شهر به روستا'),
+    ]
+
+    driver = models.ForeignKey(User, on_delete=models.CASCADE, limit_choices_to={'role': 'driver'})
+    direction = models.CharField(max_length=20, choices=DIRECTION_CHOICES)
     joined_at = models.DateTimeField(auto_now_add=True)
+    is_active = models.BooleanField(default=True)
 
     class Meta:
-        ordering = ['position', 'joined_at']
+        ordering = ['joined_at']
 
     def __str__(self):
-        return f"{self.driver} در {self.queue_type} - {self.location_name}"
-
-
-class DriverAcceptance(models.Model):
-    driver = models.ForeignKey(User, on_delete=models.CASCADE, related_name='accepted_trips')
-    trip_request = models.OneToOneField(TripRequest, on_delete=models.CASCADE, related_name='driver_acceptance')
-    accepted_at = models.DateTimeField(auto_now_add=True)
-
-    def __str__(self):
-        return f"{self.driver} → {self.trip_request}"
-
-
+        return f"{self.driver.name} ({self.get_direction_display()})"
