@@ -30,11 +30,11 @@ class TripRequest(models.Model):
 
 class DriverQueue(models.Model):
     DIRECTION_CHOICES = [
-        ('village_to_city', 'روستا به شهر'),
-        ('city_to_village', 'شهر به روستا'),
+        ('روستا به شهر', 'روستا به شهر'),
+        ('شهر به روستا', 'شهر به روستا'),
     ]
 
-    driver = models.ForeignKey(User, on_delete=models.CASCADE, limit_choices_to={'role': 'driver'})
+    driver = models.ForeignKey(User, on_delete=models.CASCADE, limit_choices_to={'role': 'راننده'})
     direction = models.CharField(max_length=20, choices=DIRECTION_CHOICES)
     joined_at = models.DateTimeField(auto_now_add=True)
     is_active = models.BooleanField(default=True)

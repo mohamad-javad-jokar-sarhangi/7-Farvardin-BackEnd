@@ -7,12 +7,19 @@ from .views import (
     request_form_page,
     queue_status_page,
     TripRequestViewSet,
+    DriverQueueViewSet,
     accept_trip_request,
+    get_driver_queue,
+    driver_console,
+    search_drivers,
+    reset_driver_queue,
 )
 
 # Router برای APIها
 router = DefaultRouter()
 router.register(r'trip-requests', TripRequestViewSet, basename='triprequest')
+router.register(r'driver-queues', DriverQueueViewSet, basename='driverqueue')
+
 
 urlpatterns = [
     # API
@@ -26,6 +33,13 @@ urlpatterns = [
     # API Router endpointها
     path('', include(router.urls)),  # ← این خط اجازه می‌دهد مسیرهای CRUD کار کنند
     
-    
+    # driver actions
     path('accept-trip/', accept_trip_request, name='accept_trip'),
+    path('driver-queue/', get_driver_queue, name='driver_queue'),
+    path('driver-console/', driver_console, name='driver_console'),
+    path('drivers/search/', search_drivers, name='search_drivers'),
+    path('driver-queues/reset/', views.reset_driver_queue, name='reset-driver-queue'),
+
+
+
 ]

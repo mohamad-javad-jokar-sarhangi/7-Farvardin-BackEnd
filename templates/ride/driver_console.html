@@ -1,0 +1,254 @@
+{% extends 'base.html' %}
+{% block title %}پنل راننده{% endblock %}
+
+{% block content %}
+<h2 style="margin-bottom:25px;">مدیریت صف رانندگان</h2>
+
+<!-- جدول صف راننده -->
+<table id="queueTable">
+    <thead>
+        <tr>
+            <th>شماره صف</th>
+            <th>نام راننده</th>
+            <th>سمت حرکت</th>
+            <th>فعال؟</th>
+            <th>عملیات</th>
+        </tr>
+    </thead>
+    <tbody></tbody>
+</table>
+
+<!-- فرم افزودن راننده -->
+<h3 style="margin-top:30px;">افزودن راننده جدید به صف</h3>
+<form id="addDriverForm" autocomplete="off">
+    <div class="form-group" style="position:relative;">
+        <label>نام راننده</label>
+        <input type="text" id="driverNameInput" required placeholder="مثلاً علی احمدی" />
+        <div id="suggestions" style="
+            position:absolute;
+            top:100%;
+            right:0;
+            left:0;
+            background:#fff;
+            border:1px solid #ccc;
+            max-height:150px;
+            overflow-y:auto;
+            z-index:10;
+            display:none;
+            color:#000;
+        "></div>
+    </div>
+    <div class="form-group">
+        <label>جهت حرکت</label>
+        <select id="directionInput">
+            <option value="شهر به روستا">روستا → شهر</option>
+            <option value="روستا به شهر">شهر → روستا</option>
+        </select>
+    </div>
+    <button type="submit" class="button">افزودن</button>
+</form>
+
+<button id="resetQueueBtn" class="button" style="background:#d9534f;margin-top:10px;">ریست صف</button>
+<script>
+document.getElementById('resetQueueBtn').addEventListener('click', () => {
+    if (!confirm('کل صف حذف شود؟')) return;
+    fetch('/ride/driver-queues/reset/', { method: 'POST' })
+        .then(res => res.json())
+        .then(result => {
+            alert(result.detail);
+            loadDriverQueue(); // جدول را بعد از ریست دوباره لود کن
+        });
+});
+</script>
+
+<hr style="margin:40px 0;" />
+
+<!-- بخش تست راننده -->
+<h2>بخش تست راننده</h2>
+<form id="driverCheckForm">
+    <div class="form-group">
+        <label>نام راننده</label>
+        <input type="text" id="testDriverName" required placeholder="مثلاً علی احمدی" />
+    </div>
+    <div class="form-group">
+        <label>جهت حرکت</label>
+        <select id="testDirection">
+            <option value="شهر به روستا">روستا → شهر</option>
+            <option value="روستا به شهر">شهر → روستا</option>
+        </select>
+    </div>
+    <button type="submit" class="button">بررسی صف و نمایش درخواست‌ها</button>
+</form>
+
+<div id="tripSection" style="margin-top:30px;">
+    <h3>درخواست‌های مسافران</h3>
+    <table id="tripTable">
+        <thead>
+            <tr>
+                <th>نام مسافر</th>
+                <th>مبدا</th>
+                <th>مقصد</th>
+                <th>عملیات</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+</div>
+
+<div id="message" class="error-message" style="display:none;"></div>
+
+<script>
+    // ===== پیشنهاد نام راننده =====
+    const nameInput = document.getElementById('driverNameInput');
+    const suggestionBox = document.getElementById('suggestions');
+    let selectedDriver = null;
+
+    nameInput.addEventListener('input', () => {
+        const q = nameInput.value.trim();
+        if (q.length < 2) {
+            suggestionBox.style.display = 'none';
+            return;
+        }
+
+        fetch(`/ride/drivers/search/?q=${q}`)
+            .then(res => res.json())
+            .then(data => {
+                suggestionBox.innerHTML = '';
+                if (data.length === 0) {
+                    suggestionBox.style.display = 'none';
+                    return;
+                }
+                data.forEach(d => {
+                    const div = document.createElement('div');
+                    div.textContent = d.username;
+                    div.style.padding = '6px';
+                    div.style.cursor = 'pointer';
+                    div.addEventListener('click', () => {
+                        nameInput.value = d.username;
+                        selectedDriver = d;
+                        suggestionBox.style.display = 'none';
+                    });
+                    suggestionBox.appendChild(div);
+                });
+                suggestionBox.style.display = 'block';
+            });
+    });
+
+    // ===== افزودن راننده به صف =====
+    function loadDriverQueue() {
+        fetch('/ride/driver-queues/')
+            .then(res => res.json())
+            .then(data => {
+                const body = document.querySelector("#queueTable tbody");
+                body.innerHTML = '';
+                data.forEach(d => {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td>${d.position ?? '-'}</td>
+                        <td>${d.driver_username}</td>
+                        <td>${d.direction}</td>
+                        <td>${d.is_active ? '✅' : '❌'}</td>
+                        <td><button class="delete-button" onclick="deleteDriver(${d.id})">حذف</button></td>
+                    `;
+                    body.appendChild(tr);
+                });
+            });
+    }
+
+    document.getElementById('addDriverForm').addEventListener('submit', e => {
+        e.preventDefault();
+        if (!selectedDriver) {
+            alert('ابتدا یک راننده معتبر انتخاب کنید.');
+            return;
+        }
+        let dir = document.getElementById('directionInput').value;
+        if (dir === 'village_to_city') dir = 'روستا به شهر';
+        if (dir === 'city_to_village') dir = 'شهر به روستا';
+
+        const obj = {
+            driver: selectedDriver.id,
+            direction: dir,
+            is_active: true
+        };
+        fetch('/ride/driver-queues/', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(obj)
+        }).then(() => {
+            loadDriverQueue();
+            selectedDriver = null;
+            nameInput.value = '';
+        });
+    });
+
+    function deleteDriver(id) {
+        fetch(`/ride/driver-queues/${id}/`, { method: 'DELETE' })
+            .then(() => loadDriverQueue());
+    }
+
+    loadDriverQueue(); // بارگذاری اولیه
+
+    // ===== تست راننده =====
+    document.getElementById('driverCheckForm').addEventListener('submit', e => {
+        e.preventDefault();
+        const name = document.getElementById('testDriverName').value.trim();
+        const direction = document.getElementById('testDirection').value;
+        const msg = document.getElementById('message');
+        msg.style.display = 'none';
+
+        fetch(`/ride/drivers/search/?q=${name}`)
+            .then(res => res.json())
+            .then(drivers => {
+                if (drivers.length === 0) {
+                    msg.innerText = '❌ راننده‌ای با این نام یافت نشد.';
+                    msg.style.display = 'block';
+                    return;
+                }
+                const driverId = drivers[0].id;
+
+                fetch(`/ride/driver-queue/?direction=${direction}`)
+                    .then(res => res.json())
+                    .then(queueData => {
+                        const firstDriver = queueData[0];
+                        if (!firstDriver || firstDriver.driver_id !== driverId) {
+                            msg.innerText = "❌ این راننده نفر اول صف نیست!";
+                            msg.style.display = 'block';
+                            document.querySelector("#tripTable tbody").innerHTML = "";
+                            return;
+                        }
+
+                        // اگر نفر اول بود → نمایش درخواست‌ها
+                        fetch('/ride/trip-requests/')
+                            .then(res => res.json())
+                            .then(trips => {
+                                const tb = document.querySelector("#tripTable tbody");
+                                tb.innerHTML = "";
+                                trips.forEach(t => {
+                                    const tr = document.createElement('tr');
+                                    tr.innerHTML = `
+                                        <td>${t.passenger_name}</td>
+                                        <td>${t.origin}</td>
+                                        <td>${t.destination}</td>
+                                        <td><button class="button" onclick="acceptTrip(${t.id}, ${driverId}, '${direction}')">قبول کن</button></td>
+                                    `;
+                                    tb.appendChild(tr);
+                                });
+                            });
+                    });
+            });
+    });
+
+    function acceptTrip(tripId, driverId, direction) {
+        fetch('/ride/accept-trip/', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ trip_id: tripId, driver_id: driverId, direction })
+        })
+        .then(res => res.json())
+        .then(result => {
+            alert(result.detail);
+            loadDriverQueue();
+        });
+    }
+</script>
+{% endblock %}
