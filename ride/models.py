@@ -33,7 +33,6 @@ class DriverQueue(models.Model):
         ('روستا به شهر', 'روستا به شهر'),
         ('شهر به روستا', 'شهر به روستا'),
     ]
-
     driver = models.ForeignKey(User, on_delete=models.CASCADE, limit_choices_to={'role': 'راننده'})
     direction = models.CharField(max_length=20, choices=DIRECTION_CHOICES)
     joined_at = models.DateTimeField(auto_now_add=True)
