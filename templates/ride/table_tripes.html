@@ -18,8 +18,8 @@
     <tbody>
         {% for t in trips %}
         <tr>
-            <td>{{ t.passenger.full_name }}</td>
-            <td>{{ t.passenger.phone_number }}</td>
+            <td>{{ t.passenger.username }}</td>
+            <td>{{ t.passenger.phone }}</td>
             <td>{{ t.get_request_type_display }}</td>
             <td>{{ t.request_time }}</td>
             <td>{{ t.request_date }}</td>
@@ -29,6 +29,4 @@
         {% endfor %}
     </tbody>
 </table>
-
-<a href="{% url 'current_tripes' %}" class="button">مشاهده درخواست‌های فعال</a>
 {% endblock %}

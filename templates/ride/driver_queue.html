@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+{% block title %}مدیریت صف رانندگان{% endblock %}
+
+{% block content %}
+<h2>صف راننده‌ها (تست)</h2>
+
+<form id="addForm" method="post" action="{% url 'add_driver_to_queue' %}">
+    {% csrf_token %}
+    <input type="text" id="driverSearch" placeholder="جستجوی راننده..." autocomplete="off">
+    <input type="hidden" name="driver_id" id="driverId">
+    <select name="zone">
+        <option value="city">شهر</option>
+        <option value="village">روستا</option>
+    </select>
+    <button type="submit">افزودن به صف</button>
+</form>
+
+<ul id="suggestions"></ul>
+
+<hr>
+
+<h3>صف شهر</h3>
+<table>
+    <tr><th>#</th><th>نام راننده</th><th>زمان ورود</th></tr>
+    {% for d in city_queue %}
+    <tr><td>{{ forloop.counter }}</td><td>{{ d.driver.name }}</td><td>{{ d.joined_at }}</td></tr>
+    {% empty %}<tr><td colspan="3">صف خالی است</td></tr>{% endfor %}
+</table>
+
+<h3>صف روستا</h3>
+<table>
+    <tr><th>#</th><th>نام راننده</th><th>زمان ورود</th></tr>
+    {% for d in village_queue %}
+    <tr><td>{{ forloop.counter }}</td><td>{{ d.driver.name }}</td><td>{{ d.joined_at }}</td></tr>
+    {% empty %}<tr><td colspan="3">صف خالی است</td></tr>{% endfor %}
+</table>
+
+<hr>
+
+<h3>تست دسترسی راننده</h3>
+<form id="accessForm" action="{% url 'check_driver_access' %}" method="post">
+    {% csrf_token %}
+    <input type="text" name="driver_name" placeholder="نام راننده...">
+    <button type="submit">نمایش سفرها</button>
+</form>
+
+<ul id="tripResults"></ul>
+
+<script>
+const searchBox = document.getElementById("driverSearch");
+const driverIdInput = document.getElementById("driverId");
+const suggestions = document.getElementById("suggestions");
+
+searchBox.addEventListener("input", async () => {
+    const q = searchBox.value;
+    if (q.length < 1) { suggestions.innerHTML = ""; return; }
+    const res = await fetch(`/ride/search-drivers/?q=${q}`);
+    const data = await res.json();
+    suggestions.innerHTML = "";
+    data.forEach(item => {
+        const li = document.createElement("li");
+        li.textContent = item.name;
+        li.onclick = () => {
+            driverIdInput.value = item.id;
+            searchBox.value = item.name;
+            suggestions.innerHTML = "";
+        };
+        suggestions.appendChild(li);
+    });
+});
+
+document.getElementById("accessForm").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const formData = new FormData(e.target);
+    const res = await fetch(e.target.action, { method: "POST", body: formData });
+    const data = await res.json();
+    const results = document.getElementById("tripResults");
+    results.innerHTML = "";
+    if (data.error) {
+        results.innerHTML = `<li>${data.error}</li>`;
+    } else {
+        data.trips.forEach(t => {
+            results.innerHTML += `<li>${t.passenger} از ${t.origin} تا ${t.destination} (${t.type})</li>`;
+        });
+    }
+});
+</script>
+{% endblock %}

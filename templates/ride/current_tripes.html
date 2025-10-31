@@ -14,23 +14,28 @@
             <th>زمان</th>
             <th>تاریخ</th>
             <th>وضعیت</th>
+            <th>عملیات</th>
         </tr>
     </thead>
     <tbody>
         {% for t in trips %}
         <tr>
-            <td>{{ t.passenger.full_name }}</td>
-            <td>{{ t.passenger.phone_number }}</td>
+            <td>{{ t.passenger.username }}</td>
+            <td>{{ t.passenger.phone }}</td>
             <td>{{ t.get_request_type_display }}</td>
             <td>{{ t.request_time }}</td>
             <td>{{ t.request_date }}</td>
             <td>{% if t.is_active %}فعال{% else %}غیرفعال{% endif %}</td>
+            <td>
+                <form action="{% url 'delete_current_tripe' t.id %}" method="post" style="display:inline;">
+                    {% csrf_token %}
+                    <button type="submit">حذف</button>
+                </form>
+            </td>
         </tr>
         {% empty %}
-        <tr><td colspan="6">هیچ درخواست فعالی وجود ندارد</td></tr>
+        <tr><td colspan="7">هیچ درخواست فعالی وجود ندارد</td></tr>
         {% endfor %}
     </tbody>
 </table>
-
-<a href="{% url 'table_tripes' %}" class="button">مشاهده کل درخواست‌ها</a>
 {% endblock %}
