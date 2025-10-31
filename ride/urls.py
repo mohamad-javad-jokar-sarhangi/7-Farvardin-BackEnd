@@ -1,45 +1,16 @@
-from django.urls import path , include
-from rest_framework.routers import DefaultRouter
+from django.urls import path
 from . import views
 
-from .views import (
-    CreateTripView,
-    request_form_page,
-    queue_status_page,
-    TripRequestViewSet,
-    DriverQueueViewSet,
-    accept_trip_request,
-    get_driver_queue,
-    driver_console,
-    search_drivers,
-    reset_driver_queue,
-)
-
-# Router برای APIها
-router = DefaultRouter()
-router.register(r'trip-requests', TripRequestViewSet, basename='triprequest')
-router.register(r'driver-queues', DriverQueueViewSet, basename='driverqueue')
-
-
 urlpatterns = [
-    # API
-    path('trip/create/', CreateTripView.as_view(), name='create-trip'),
-
-    # HTML
-    path('request-form/', request_form_page, name='request_form'),
-    path('queue-status/', queue_status_page, name='queue_status'),
-    path('delete-trip/<int:trip_id>/', views.delete_trip, name='delete_trip'),
+    # ساخت درخواست جدید
+    path('create-tripe/', views.create_tripe, name='create_tripe'),
+    # لیست درخواست های جاری
+    path('current-tripes/', views.current_tripes, name='current_tripes'),
+    # لیست همه درخواست‌ها در جدول    
+    path('table-tripes/', views.table_tripes, name='table_tripes'),
+    # برای پیدا کردن اسم مسافر 
+    path("search-passengers/", views.search_passengers, name="search_passengers"),
+    #
     
-    # API Router endpointها
-    path('', include(router.urls)),  # ← این خط اجازه می‌دهد مسیرهای CRUD کار کنند
-    
-    # driver actions
-    path('accept-trip/', accept_trip_request, name='accept_trip'),
-    path('driver-queue/', get_driver_queue, name='driver_queue'),
-    path('driver-console/', driver_console, name='driver_console'),
-    path('drivers/search/', search_drivers, name='search_drivers'),
-    path('driver-queues/reset/', views.reset_driver_queue, name='reset-driver-queue'),
-
-
 
 ]

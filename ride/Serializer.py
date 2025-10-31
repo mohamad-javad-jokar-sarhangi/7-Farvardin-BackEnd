@@ -1,15 +1,19 @@
 from rest_framework import serializers
-from .models import TripRequest, DriverQueue
+from .models import CurrentTripe, TableTripe
 
-class TripRequestSerializer(serializers.ModelSerializer):
+class CurrentTripeSerializer(serializers.ModelSerializer):
+    passenger_name = serializers.CharField(source='passenger.full_name', read_only=True)
+    passenger_phone = serializers.CharField(source='passenger.phone_number', read_only=True)
+
     class Meta:
-        model = TripRequest
+        model = CurrentTripe
         fields = '__all__'
 
 
-class DriverQueueSerializer(serializers.ModelSerializer):
-    driver_username = serializers.CharField(source='driver.username', read_only=True)
+class TableTripeSerializer(serializers.ModelSerializer):
+    passenger_name = serializers.CharField(source='passenger.full_name', read_only=True)
+    passenger_phone = serializers.CharField(source='passenger.phone_number', read_only=True)
 
     class Meta:
-        model = DriverQueue
-        fields = ['id', 'driver', 'driver_username', 'direction', 'joined_at', 'is_active']
+        model = TableTripe
+        fields = '__all__'

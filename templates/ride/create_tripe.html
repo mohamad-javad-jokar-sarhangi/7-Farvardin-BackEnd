@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+{% block title %}ایجاد درخواست جدید{% endblock %}
+{% block content %}
+<h2>درخواست سفر جدید</h2>
+
+<form method="POST" class="request-form">
+    {% csrf_token %}
+
+    <div class="form-group">
+        <label for="passenger_search">نام مسافر:</label>
+        <input type="text" id="passenger_search" placeholder="جستجوی نام مسافر..." autocomplete="off">
+        <input type="hidden" name="user_id" id="selected_user_id">
+        <div id="suggestions" class="suggestions-list"></div>
+    </div>
+
+    <div class="form-group">
+        <label for="request_type">نوع درخواست:</label>
+        <select name="request_type" id="request_type">
+            <option value="normal">Normal</option>
+            <option value="hurryup">Hurry Up</option>
+            <option value="vip">VIP</option>
+        </select>
+    </div>
+
+    <button type="submit" class="button">ثبت درخواست</button>
+</form>
+
+<a href="{% url 'current_tripes' %}" class="button">مشاهده درخواست‌های فعال</a>
+
+<script>
+const input = document.getElementById("passenger_search");
+const suggestionsBox = document.getElementById("suggestions");
+input.addEventListener("input", async () => {
+    const q = input.value.trim();
+    if (q.length < 2) {
+        suggestionsBox.innerHTML = "";
+        return;
+    }
+    const response = await fetch(`/ride/search-passengers/?q=${q}`);
+    const results = await response.json();
+
+    suggestionsBox.innerHTML = "";
+    results.forEach(user => {
+        const div = document.createElement("div");
+        div.className = "suggest-item";
+        div.textContent = `${user.name} - ${user.phone}`;
+        div.onclick = () => {
+            input.value = user.name;
+            document.getElementById("selected_user_id").value = user.id;
+            suggestionsBox.innerHTML = "";
+        };
+        suggestionsBox.appendChild(div);
+    });
+});
+</script>
+
+<style>
+.suggestions-list {
+    border: 1px solid #ccc;
+    max-height: 180px;
+    overflow-y: auto;
+    background: #fff;
+    position: absolute;
+    width: 300px;
+    z-index: 10;
+}
+.suggest-item {
+    padding: 5px;
+    cursor: pointer;
+}
+.suggest-item:hover { background: #eef; }
+</style>
+{% endblock %}
