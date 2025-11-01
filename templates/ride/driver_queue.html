@@ -2,9 +2,9 @@
 {% block title %}مدیریت صف رانندگان{% endblock %}
 
 {% block content %}
-<h2>صف راننده‌ها (تست)</h2>
+<h2>مدیریت صف رانندگان</h2>
 
-<form id="addForm" method="post" action="{% url 'add_driver_to_queue' %}">
+<form id="addForm" method="post" action="{% url 'add_driver_to_queue' %}" style="margin-bottom:20px; position:relative;">
     {% csrf_token %}
     <input type="text" id="driverSearch" placeholder="جستجوی راننده..." autocomplete="off">
     <input type="hidden" name="driver_id" id="driverId">
@@ -12,39 +12,65 @@
         <option value="city">شهر</option>
         <option value="village">روستا</option>
     </select>
-    <button type="submit">افزودن به صف</button>
-</form>
+    <button type="submit" class="button" style="margin-top:10px;width:100%;">افزودن به صف</button>
 
-<ul id="suggestions"></ul>
+    <!-- ساجست راننده -->
+    <ul id="suggestions"></ul>
+</form>
 
 <hr>
 
 <h3>صف شهر</h3>
 <table>
-    <tr><th>#</th><th>نام راننده</th><th>زمان ورود</th></tr>
+    <tr><th>#</th><th>نام راننده</th><th>شماره تماس</th><th>زمان ورود</th><th>عملیات</th></tr>
     {% for d in city_queue %}
-    <tr><td>{{ forloop.counter }}</td><td>{{ d.driver.name }}</td><td>{{ d.joined_at }}</td></tr>
-    {% empty %}<tr><td colspan="3">صف خالی است</td></tr>{% endfor %}
+    <tr>
+        <td>{{ forloop.counter }}</td>
+        <td>{{ d.driver.name }}</td>
+        <td>{{ d.driver.phone }}</td>
+        <td>{{ d.joined_at|date:"Y-m-d H:i" }}</td>
+        <td><a href="{% url 'remove_driver' d.id %}" class="btn btn-danger btn-sm">حذف</a></td>
+    </tr>
+    {% empty %}
+    <tr><td colspan="5">صف خالی است</td></tr>
+    {% endfor %}
 </table>
 
 <h3>صف روستا</h3>
 <table>
-    <tr><th>#</th><th>نام راننده</th><th>زمان ورود</th></tr>
+    <tr><th>#</th><th>نام راننده</th><th>شماره تماس</th><th>زمان ورود</th><th>عملیات</th></tr>
     {% for d in village_queue %}
-    <tr><td>{{ forloop.counter }}</td><td>{{ d.driver.name }}</td><td>{{ d.joined_at }}</td></tr>
-    {% empty %}<tr><td colspan="3">صف خالی است</td></tr>{% endfor %}
+    <tr>
+        <td>{{ forloop.counter }}</td>
+        <td>{{ d.driver.name }}</td>
+        <td>{{ d.driver.phone }}</td>
+        <td>{{ d.joined_at|date:"Y-m-d H:i" }}</td>
+        <td><a href="{% url 'remove_driver' d.id %}" class="btn btn-danger btn-sm">حذف</a></td>
+    </tr>
+    {% empty %}
+    <tr><td colspan="5">صف خالی است</td></tr>
+    {% endfor %}
 </table>
 
 <hr>
 
 <h3>تست دسترسی راننده</h3>
-<form id="accessForm" action="{% url 'check_driver_access' %}" method="post">
+<form id="accessForm" action="{% url 'check_driver_access' %}" method="post" style="margin-bottom:10px;">
     {% csrf_token %}
     <input type="text" name="driver_name" placeholder="نام راننده...">
-    <button type="submit">نمایش سفرها</button>
+    <hr>
+    <button type="submit" class="button">نمایش سفرها</button>
 </form>
 
-<ul id="tripResults"></ul>
+<!-- جدول نمایش سفرها -->
+<table id="tripTable">
+    <thead>
+        <tr><th>مسافر</th><th>مبدأ</th><th>مقصد</th><th>نوع سفر</th></tr>
+    </thead>
+    <tbody id="tripResults">
+        <tr><td colspan="4">فعلاً داده‌ای وجود ندارد</td></tr>
+    </tbody>
+</table>
 
 <script>
 const searchBox = document.getElementById("driverSearch");
@@ -52,8 +78,8 @@ const driverIdInput = document.getElementById("driverId");
 const suggestions = document.getElementById("suggestions");
 
 searchBox.addEventListener("input", async () => {
-    const q = searchBox.value;
-    if (q.length < 1) { suggestions.innerHTML = ""; return; }
+    const q = searchBox.value.trim();
+    if (!q) { suggestions.innerHTML = ""; return; }
     const res = await fetch(`/ride/search-drivers/?q=${q}`);
     const data = await res.json();
     suggestions.innerHTML = "";
@@ -74,13 +100,15 @@ document.getElementById("accessForm").addEventListener("submit", async (e) => {
     const formData = new FormData(e.target);
     const res = await fetch(e.target.action, { method: "POST", body: formData });
     const data = await res.json();
-    const results = document.getElementById("tripResults");
-    results.innerHTML = "";
+    const tbody = document.getElementById("tripResults");
+    tbody.innerHTML = "";
     if (data.error) {
-        results.innerHTML = `<li>${data.error}</li>`;
+        tbody.innerHTML = `<tr><td colspan="4" style="color:red;">${data.error}</td></tr>`;
+    } else if (!data.trips.length) {
+        tbody.innerHTML = `<tr><td colspan="4">هیچ سفری یافت نشد</td></tr>`;
     } else {
         data.trips.forEach(t => {
-            results.innerHTML += `<li>${t.passenger} از ${t.origin} تا ${t.destination} (${t.type})</li>`;
+            tbody.innerHTML += `<tr><td>${t.passenger}</td><td>${t.origin}</td><td>${t.destination}</td><td>${t.type}</td></tr>`;
         });
     }
 });

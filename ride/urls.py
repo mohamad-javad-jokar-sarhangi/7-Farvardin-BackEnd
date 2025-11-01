@@ -23,6 +23,10 @@ urlpatterns = [
     path('search-drivers/', views.search_drivers, name='search_drivers'),
     path('add-driver-to-queue/', views.add_driver_to_queue, name='add_driver_to_queue'),
     path('check-access/', views.check_driver_access, name='check_driver_access'),
+    
+    # حذف راننده از صف
+    path('remove-driver/<int:driver_id>/', views.remove_driver, name='remove_driver'),
+
 
 
 ]

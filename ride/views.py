@@ -222,8 +222,11 @@ def add_driver_to_queue(request):
     if request.method == 'POST':
         driver_id = request.POST.get('driver_id')
         zone = request.POST.get('zone')
-        driver = get_object_or_404(User, id=driver_id)
-        # بررسی اینکه قبلاً فعال نبوده
+
+        if not driver_id:  # اگر id خالی بود
+            return JsonResponse({'error': 'شناسه راننده ارسال نشده'}, status=400)
+
+        driver = get_object_or_404(User, id=int(driver_id))
         exists = DriverQueue.objects.filter(driver=driver, is_active=True, zone=zone).exists()
         if not exists:
             DriverQueue.objects.create(driver=driver, zone=zone, is_active=True)
@@ -246,3 +249,9 @@ def check_driver_access(request):
         return JsonResponse({'trips': data})
     else:
         return JsonResponse({'error': 'دسترسی ندارید'}, status=403)
+    
+# حذف راننده از صف  
+def remove_driver(request, driver_id):
+    driver_queue = get_object_or_404(DriverQueue, id=driver_id)
+    driver_queue.delete()
+    return redirect('driver_queue_page')

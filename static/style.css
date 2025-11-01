@@ -6,9 +6,41 @@
     font-family: 'Vazirmatn', sans-serif;
 }
 
-body {
+/* ===== حالت صفحه دو ستونه ===== */
+body.drawer-fixed {
+    display: flex;
+    flex-direction: row-reverse; /* چون راست‌چین هست */
+    height: 100vh;
+    overflow: hidden;
     transition: background-color 0.3s, color 0.3s;
-    overflow-x: hidden;
+}
+
+/* ===== Drawer (منو ثابت سمت راست قابل اسکرول) ===== */
+.drawer {
+    width: 270px;
+    height: 100vh;
+    background-color: var(--menu-bg);
+    color: var(--menu-text);
+    box-shadow: -2px 0 10px rgba(0,0,0,0.2);
+    padding: 20px;
+    overflow-y: auto;
+    flex-shrink: 0;
+    position: relative;
+    z-index: 900;
+}
+.drawer::-webkit-scrollbar {
+    width: 6px;
+}
+.drawer::-webkit-scrollbar-thumb {
+    background: var(--accent);
+    border-radius: 4px;
+}
+
+/* ===== محتوای اصلی سمت چپ ===== */
+.page-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 80px 40px 40px 40px;
 }
 
 /* ===== هدر ثابت ===== */
@@ -246,3 +278,73 @@ body.night {
     background-color: #121212;
     color: #fff;
 }
+
+/* ===== ساجست راننده ===== */
+#suggestions {
+    position: absolute;
+    top: 43px; /* زیر فید */
+    left: 0;
+    right: 0;
+    background-color: var(--input-bg);
+    border: 1px solid var(--input-border);
+    border-top: none;
+    border-radius: 0 0 6px 6px;
+    z-index: 10;
+}
+#suggestions li {
+    padding: 8px 10px;
+    list-style: none;
+    border-bottom: 1px solid var(--table-border);
+    cursor: pointer;
+    transition: background 0.2s;
+}
+#suggestions li:hover {
+    background-color: var(--accent);
+    color: #fff;
+}
+
+/* در حالت شب رنگ متن پیشنهادها بنفش ملایم برای دید بهتر */
+body.night #suggestions li {
+    color: #a85bf1;  /* بنفش برای تم شب */
+}
+
+/* ===== ساجست راننده (منو آبشاری زیر فیلد) ===== */
+#addForm {
+    position: relative;
+}
+
+#suggestions {
+    position: absolute;
+    top: 42px; /* دقیقاً زیر input جستجو */
+    left: 0;
+    right: 0;
+    background-color: var(--input-bg);
+    border: 1px solid var(--input-border);
+    border-radius: 0 0 6px 6px;
+    overflow: hidden;
+    z-index: 999;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+}
+
+#suggestions li {
+    padding: 8px 10px;
+    list-style: none;
+    border-bottom: 1px solid var(--table-border);
+    cursor: pointer;
+    transition: background 0.15s;
+}
+
+#suggestions li:last-child {
+    border-bottom: none;
+}
+
+#suggestions li:hover {
+    background-color: var(--accent);
+    color: #fff;
+}
+
+/* حالت شب — متن بنفش برای دید بهتر */
+body.night #suggestions li {
+    color: #a85bf1;
+}
+

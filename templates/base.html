@@ -9,7 +9,8 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;700&display=swap" rel="stylesheet">
 </head>
-<body class="day">
+
+<body class="day drawer-fixed">  <!-- تغییر جزئی برای حالت دائمی منو -->
 
     <button class="menu-btn" id="menuBtn">☰</button>
 
@@ -26,13 +27,11 @@
         </ul>
 
         <h4>بخش سفرها</h4>
-            <a href="{% url 'create_tripe' %}">➕ ساخت درخواست</a>
+        <ul>
+            <li><a href="{% url 'create_tripe' %}">➕ ساخت درخواست</a></li>
             <li><a href="{% url 'current_tripes' %}">🚗 درخواست‌های فعال</a></li>
             <li><a href="{% url 'table_tripes' %}">🧾 سوابق سفرها</a></li>
-            <li><a href="{% url 'driver_queue_page' %}">🧾 سوابق سفرها</a></li>
-
-        <ul>
-            
+            <li><a href="{% url 'driver_queue_page' %}">🚗 صف راننده‌ها (تست)</a></li>
         </ul>
 
         <h4>بخش مقالات</h4>
@@ -51,7 +50,6 @@
             <button id="nightModeBtn">🌙 حالت شب</button>
         </div>
     </nav>
-    <div class="overlay" id="overlay"></div>
 
     <main class="page-content">
         {% block content %}
