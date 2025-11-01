@@ -45,10 +45,14 @@ def create_tripe(request):
         request_date = request.POST.get('request_date')
         request_time = request.POST.get('request_time')
 
-        # بررسی نقش کاربر
-        passenger = User.objects.get(id=user_id, role='مسافر')
+        # بررسی وجود کاربر و نقش مسافر
+        passenger = get_object_or_404(User, id=user_id, role='مسافر')
 
-        # ایجاد سفر فعال
+        # ⛔ کنترل تکرار: اگر سفر فعال دارد
+        if CurrentTripe.objects.filter(passenger=passenger, is_active=True).exists():
+            return JsonResponse({'error': 'این مسافر در حال حاضر سفر فعالی دارد و نمی‌تواند درخواست جدید ثبت کند.'}, status=400)
+
+        # ✅ ایجاد سفر فعال
         current = CurrentTripe.objects.create(
             passenger=passenger,
             request_type=request_type,
@@ -59,7 +63,7 @@ def create_tripe(request):
             is_active=True
         )
 
-        # ثبت در جدول آرشیو
+        # 📝 ثبت در جدول آرشیو
         TableTripe.objects.create(
             passenger=passenger,
             request_type=request_type,
@@ -71,9 +75,8 @@ def create_tripe(request):
 
         return redirect('current_tripes')
 
-    # اگر متد GET بود، فرم خالی را نمایش بده
+    # اگر متد GET بود، فرم را نمایش بده
     return render(request, 'ride/create_tripe.html')
-
 
 
 # لیست درخواست‌های فعال
@@ -223,14 +226,22 @@ def add_driver_to_queue(request):
         driver_id = request.POST.get('driver_id')
         zone = request.POST.get('zone')
 
-        if not driver_id:  # اگر id خالی بود
+        if not driver_id:
             return JsonResponse({'error': 'شناسه راننده ارسال نشده'}, status=400)
 
         driver = get_object_or_404(User, id=int(driver_id))
-        exists = DriverQueue.objects.filter(driver=driver, is_active=True, zone=zone).exists()
-        if not exists:
-            DriverQueue.objects.create(driver=driver, zone=zone, is_active=True)
+
+        # ⛔ کنترل تکرار: راننده نباید قبلاً در صف فعال باشد
+        if DriverQueue.objects.filter(driver=driver, is_active=True, zone=zone).exists():
+            return JsonResponse({'error': 'این راننده هم‌اکنون در صف فعال قرار دارد و نمی‌تواند دوباره وارد شود.'}, status=400)
+
+        # ✅ افزودن راننده جدید به صف
+        DriverQueue.objects.create(driver=driver, zone=zone, is_active=True)
+
         return redirect('driver_queue_page')
+
+    # اگر متد GET بود (احتمالاً لازم نیست)
+    return render(request, 'ride/driver_queue_page.html')
 
 
 # تست دسترسی نفر اول به لیست درخواست‌های مسافر

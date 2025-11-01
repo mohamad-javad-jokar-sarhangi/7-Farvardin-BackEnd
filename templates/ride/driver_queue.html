@@ -14,6 +14,9 @@
     </select>
     <button type="submit" class="button" style="margin-top:10px;width:100%;">افزودن به صف</button>
 
+    <!-- محل نمایش خطا -->
+    <div id="errorBoxDriver" style="color:red; margin-top:10px;"></div>
+
     <!-- ساجست راننده -->
     <ul id="suggestions"></ul>
 </form>
@@ -76,6 +79,7 @@
 const searchBox = document.getElementById("driverSearch");
 const driverIdInput = document.getElementById("driverId");
 const suggestions = document.getElementById("suggestions");
+const errorBoxDriver = document.getElementById("errorBoxDriver");
 
 searchBox.addEventListener("input", async () => {
     const q = searchBox.value.trim();
@@ -93,6 +97,26 @@ searchBox.addEventListener("input", async () => {
         };
         suggestions.appendChild(li);
     });
+});
+
+document.getElementById("addForm").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    errorBoxDriver.textContent = "";
+    const formData = new FormData(e.target);
+    const res = await fetch(e.target.action, { method: "POST", body: formData });
+
+    // 👇 هندلینگ ارور از بک‌اند (اگر JSON بود)
+    const contentType = res.headers.get("Content-Type");
+    if (contentType && contentType.includes("application/json")) {
+        const data = await res.json();
+        if (data.error) {
+            errorBoxDriver.textContent = data.error;
+            return;
+        }
+    }
+
+    // در صورت موفقیت، صفحه رفرش شود
+    window.location.reload();
 });
 
 document.getElementById("accessForm").addEventListener("submit", async (e) => {
