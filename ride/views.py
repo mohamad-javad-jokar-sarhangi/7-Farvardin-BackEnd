@@ -8,6 +8,7 @@ from django.http import JsonResponse
 from django.db.models import Q
 from .models import DriverQueue, AcceptedTrip, CurrentTripe
 from django.shortcuts import redirect, get_object_or_404
+from django.views.decorators.csrf import csrf_exempt
 
 class CurrentTripeViewSet(viewsets.ModelViewSet):
     queryset = CurrentTripe.objects.all()
@@ -153,44 +154,6 @@ def view_passenger_requests(request, driver_id):
     return render(request, 'ride/view_requests.html', {'trips': trips, 'driver': driver})
 
 
-def accept_requests(request):
-    if request.method == 'POST':
-        driver_id = request.POST.get('driver_id')
-        trip_ids = request.POST.getlist('trip_ids')
-        driver = User.objects.get(id=driver_id, role='راننده')
-        selected = CurrentTripe.objects.filter(id__in=trip_ids, is_active=True)
-
-        # بررسی نوع درخواست‌ها
-        types = [t.request_type for t in selected]
-        # vip
-        if 'vip' in types:
-            trips_to_accept = selected
-        elif 'hurryup' in types:
-            trips_to_accept = selected
-        else:
-            # normal در حد حداکثر ۴ تا
-            if len(selected) > 4:
-                return render(request, 'ride/view_requests.html', {'error': 'فقط ۴ درخواست مجاز است.'})
-            trips_to_accept = selected
-
-        for trip in trips_to_accept:
-            trip.is_active = False
-            trip.save()
-            AcceptedTrip.objects.create(
-                driver=driver,
-                passenger=trip.passenger,
-                request_type=trip.request_type,
-                zone='city',  # یا تعیین بر اساس لوکیشن بعداً
-            )
-
-        # راننده حرکت کرد => از صف حذف شود
-        DriverQueue.objects.filter(driver=driver, is_active=True).update(is_active=False)
-
-        return redirect('view_movements')
-
-    return redirect('view_queue')
-
-
 def view_movements(request):
     movements = AcceptedTrip.objects.all().order_by('-created_at')
     return render(request, 'ride/view_movements.html', {'movements': movements})
@@ -248,21 +211,139 @@ def add_driver_to_queue(request):
 def check_driver_access(request):
     driver_name = request.POST.get('driver_name')
     driver = User.objects.filter(name=driver_name, role='راننده').first()
+
     if not driver:
         return JsonResponse({'error': 'راننده پیدا نشد'}, status=404)
 
     city_first = DriverQueue.objects.filter(zone='city', is_active=True).order_by('joined_at').first()
     village_first = DriverQueue.objects.filter(zone='village', is_active=True).order_by('joined_at').first()
 
-    if (city_first and city_first.driver == driver) or (village_first and village_first.driver == driver):
+    # تشخیص اینکه راننده نفر اول صف کدام منطقه است
+    is_first = False
+    zone = None
+    if city_first and city_first.driver == driver:
+        is_first = True
+        zone = 'city'
+    elif village_first and village_first.driver == driver:
+        is_first = True
+        zone = 'village'
+
+    if is_first:
         trips = CurrentTripe.objects.filter(is_active=True)
-        data = [{'passenger': t.passenger.name, 'origin': t.origin, 'destination': t.destination, 'type': t.request_type} for t in trips]
-        return JsonResponse({'trips': data})
+        data = [
+            {
+                'id': t.id,
+                'passenger': t.passenger.name,
+                'origin': t.origin,
+                'destination': t.destination,
+                'type': t.request_type
+            }
+            for t in trips
+        ]
+
+        return JsonResponse({
+            'status': 'ok',
+            'driver_id': driver.id,    # 🔥 اضافه شد
+            'zone': zone,              # 🔥 برای دانستن محدوده صف
+            'trips': data
+        })
+
     else:
-        return JsonResponse({'error': 'دسترسی ندارید'}, status=403)
+        return JsonResponse({'status': 'error', 'message': 'دسترسی ندارید'}, status=403)
     
 # حذف راننده از صف  
 def remove_driver(request, driver_id):
     driver_queue = get_object_or_404(DriverQueue, id=driver_id)
     driver_queue.delete()
     return redirect('driver_queue_page')
+
+
+# صف راننده‌ها برای قبول کردن درخواست‌ها
+@csrf_exempt
+def accept_requests(request):
+    if request.method != 'POST':
+        return JsonResponse({'error': 'روش ارسال اشتباه است (فقط POST مجاز است)'}, status=405)
+
+    driver_id = request.POST.get('driver_id')
+    trip_ids = request.POST.getlist('trip_ids')
+
+    if not driver_id or not trip_ids:
+        return JsonResponse({'error': 'شناسه راننده یا لیست درخواست‌ها ارسال نشده است'}, status=400)
+
+    # بررسی وجود راننده
+    try:
+        driver = User.objects.get(id=driver_id, role='راننده')
+    except User.DoesNotExist:
+        return JsonResponse({'error': 'راننده یافت نشد'}, status=404)
+
+    # بررسی اینکه راننده در صف فعال هست
+    active_queue = DriverQueue.objects.filter(driver=driver, is_active=True).first()
+    if not active_queue:
+        return JsonResponse({'error': 'راننده در صف فعال نیست'}, status=403)
+
+    zone = active_queue.zone
+    all_drivers = list(DriverQueue.objects.filter(zone=zone, is_active=True).order_by('joined_at'))
+
+    # بررسی جایگاه راننده
+    try:
+        driver_index = all_drivers.index(active_queue)
+    except ValueError:
+        return JsonResponse({'error': 'خطا در محاسبه جایگاه راننده در صف'}, status=500)
+
+    if driver_index != 0:
+        return JsonResponse({'error': 'راننده باید نفر اول صف باشد'}, status=403)
+
+    # دریافت درخواست‌های فعال انتخاب‌شده
+    chosen_trips = list(CurrentTripe.objects.filter(id__in=trip_ids, is_active=True))
+    if not chosen_trips:
+        return JsonResponse({'error': 'هیچ درخواست فعالی یافت نشد'}, status=404)
+
+    types = [trip.request_type for trip in chosen_trips]
+
+    # ------------------ قوانین پذیرش ------------------
+    if 'vip' in types:
+        chosen_trips = [t for t in chosen_trips if t.request_type == 'vip']
+
+    elif 'hurryup' in types:
+        chosen_trips = [t for t in chosen_trips if t.request_type == 'hurryup']
+
+    elif all(t == 'normal' for t in types):
+        if len(chosen_trips) > 4:
+            return JsonResponse({'error': 'حداکثر ۴ درخواست نرمال مجاز است'}, status=400)
+        # مجاز است ادامه بده
+    else:
+        return JsonResponse({'error': 'ترکیب نوع درخواست معتبر نیست'}, status=400)
+
+    # ------------------ ثبت پذیرش ------------------
+    for trip in chosen_trips:
+        AcceptedTrip.objects.create(
+            driver=driver,
+            passenger=trip.passenger,
+            request_type=trip.request_type,
+            zone=zone
+        )
+        trip.is_active = False
+        trip.save()
+
+    # ✅ فقط درخواست‌های انتخاب‌شده غیرفعال شوند
+    CurrentTripe.objects.filter(id__in=trip_ids).update(is_active=False)
+
+    # خروج راننده از صف
+    active_queue.is_active = False
+    active_queue.save()
+
+    # پاسخ موفق
+    return JsonResponse({
+        'success': True,
+        'accepted_count': len(chosen_trips),
+        'zone': zone,
+        'types': list(set(types)),
+        'message': f"راننده {driver.name} حرکت کرد و {len(chosen_trips)} درخواست پذیرفت."
+    })
+
+
+
+# مشاهده درخاست صفحه درخاست مسافر قبول کردن
+def driver_accept_page(request):
+    movements = AcceptedTrip.objects.all().order_by('-created_at')
+    return render(request, 'ride/driver_accept_page.html', {'movements': movements})

@@ -22,11 +22,17 @@ urlpatterns = [
     path('driver-queue/', views.driver_queue_page, name='driver_queue_page'),
     path('search-drivers/', views.search_drivers, name='search_drivers'),
     path('add-driver-to-queue/', views.add_driver_to_queue, name='add_driver_to_queue'),
-    path('check-access/', views.check_driver_access, name='check_driver_access'),
+    # path('check-access/', views.check_driver_access, name='check_driver_access'),
     
     # حذف راننده از صف
     path('remove-driver/<int:driver_id>/', views.remove_driver, name='remove_driver'),
-
+    # مشاهده درخاست مسافران و قبول کردنش توسط راننده
+    path('driver_accept_page/', views.driver_accept_page, name='driver_accept_page'),
+    # اینم ویو بالایی 
+    path('accept_requests/', views.accept_requests, name='accept_requests'),
+    
+    path('check-access/', views.check_driver_access, name='check_driver_access'),
+    
 
 
 ]

@@ -1,0 +1,163 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}پذیرش درخواست‌ها توسط راننده{% endblock %}
+
+{% block content %}
+
+<h2>پذیرش درخواست‌ها توسط راننده</h2>
+
+<!-- بخش بررسی راننده و صف -->
+<div class="form-group">
+    <label for="driverName">نام راننده:</label>
+    <input type="text" id="driverName" placeholder="مثلاً علی رضایی">
+    <button class="button" id="checkAccessBtn">بررسی دسترسی</button>
+    <div id="accessError" class="error-message"></div>
+</div>
+
+<!-- بخش نمایش درخواست‌های فعال -->
+<div id="requestsSection" style="display:none;">
+    <h3>درخواست‌های فعال قابل پذیرش</h3>
+
+    <table border="1" style="width:100%; border-collapse:collapse; text-align:center;">
+        <thead>
+            <tr>
+                <th>انتخاب</th>
+                <th>مسافر</th>
+                <th>مبدأ</th>
+                <th>مقصد</th>
+                <th>نوع درخواست</th>
+            </tr>
+        </thead>
+        <tbody id="tripBody"></tbody>
+    </table>
+
+    <button class="button" id="acceptBtn" style="margin-top:15px;">✅ قبول درخواست‌ها</button>
+    <div id="acceptResult" class="success-box" style="margin-top:10px;"></div>
+</div>
+
+<!-- بخش نمایش سفرهای پذیرفته‌شده -->
+<h3 style="margin-top:40px;">سفرهای پذیرفته‌شده</h3>
+<table border="1" style="width:100%; border-collapse:collapse; text-align:center;">
+    <thead>
+        <tr>
+            <th>راننده</th>
+            <th>مسافر</th>
+            <th>نوع درخواست</th>
+            <th>منطقه</th>
+            <th>زمان ثبت</th>
+        </tr>
+    </thead>
+    <tbody id="acceptedBody">
+        {% for item in movements %}
+            <tr>
+                <td>{{ item.driver.name }}</td>
+                <td>{{ item.passenger.name }}</td>
+                <td>{{ item.request_type }}</td>
+                <td>{{ item.zone }}</td>
+                <td>{{ item.created_at }}</td>
+            </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<script>
+const driverInput = document.getElementById('driverName');
+const checkBtn = document.getElementById('checkAccessBtn');
+const tripBody = document.getElementById('tripBody');
+const requestsSection = document.getElementById('requestsSection');
+const accessError = document.getElementById('accessError');
+const acceptBtn = document.getElementById('acceptBtn');
+const acceptResult = document.getElementById('acceptResult');
+let driverId = null;
+
+checkBtn.addEventListener('click', async () => {
+    accessError.textContent = '';
+    tripBody.innerHTML = '';
+    requestsSection.style.display = 'none';
+    acceptResult.textContent = '';
+    driverId = null;
+
+    const driverName = driverInput.value.trim();
+    if (!driverName) {
+        accessError.textContent = 'نام راننده را وارد کنید.';
+        return;
+    }
+
+    // بررسی دسترسی راننده
+    const res = await fetch("{% url 'check_driver_access' %}", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/x-www-form-urlencoded",
+            "X-CSRFToken": "{{ csrf_token }}"
+        },
+        body: new URLSearchParams({ driver_name: driverName })
+    });
+
+    const data = await res.json();
+
+    if (data.error) {
+        accessError.textContent = data.error;
+        return;
+    }
+
+    // دسترسی تأیید شد
+    requestsSection.style.display = "block";
+    driverId = data.driver_id || null;
+
+    // نمایش درخواست‌های فعال به‌صورت جدول
+    data.trips.forEach(trip => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td><input type="checkbox" name="trip_ids" value="${trip.id}"></td>
+            <td>${trip.passenger}</td>
+            <td>${trip.origin}</td>
+            <td>${trip.destination}</td>
+            <td>${trip.type}</td>
+        `;
+        tripBody.appendChild(tr);
+    });
+});
+
+acceptBtn.addEventListener('click', async () => {
+    const checked = [...document.querySelectorAll('input[name="trip_ids"]:checked')].map(x => x.value);
+
+    if (checked.length === 0) {
+        acceptResult.textContent = 'هیچ درخواستی انتخاب نشده است.';
+        return;
+    }
+    if (!driverId) {
+        acceptResult.textContent = 'شناسه راننده یافت نشد.';
+        return;
+    }
+
+    const formData = new URLSearchParams();
+    formData.append('driver_id', driverId);
+    checked.forEach(id => formData.append('trip_ids', id));
+
+    // ✅ اصلاح شده:
+    console.log("Driver ID:", driverId);
+
+    const res = await fetch("{% url 'accept_requests' %}", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/x-www-form-urlencoded",
+            "X-CSRFToken": "{{ csrf_token }}"
+        },
+        body: formData
+    });
+
+    const txt = await res.text();
+
+    if (res.ok) {
+        acceptResult.textContent = 'درخواست‌ها با موفقیت پذیرفته شدند.';
+        setTimeout(() => location.reload(), 1500);
+    } else {
+        acceptResult.textContent = 'خطا در ثبت پذیرش: ' + txt;
+    }
+});
+</script>
+
+
+
+{% endblock %}
