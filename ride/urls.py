@@ -36,7 +36,11 @@ urlpatterns = [
     path('delete_trip/<int:trip_id>/', views.delete_trip, name='delete_trip'),
     # پایان سفر راننده
     path('finish_trip/<int:trip_id>/', views.finish_trip, name='finish_trip'),
+    # چه سفر هایی انجام شده بین بازه مشخص 
+    path("driver_trip_history/", views.driver_trip_history_page, name="driver_trip_history"),
+    path("trip_history_api/", views.trip_history_api, name="trip_history_api"),
 
-
+    # ✅ URL جدید برای API سفرهای فعال
+    path('api/active-trips/', views.get_all_active_trips_api, name='get_all_active_trips_api'),
 
 ]

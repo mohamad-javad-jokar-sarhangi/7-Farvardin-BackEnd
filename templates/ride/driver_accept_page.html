@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}پذیرش درخواست‌ها توسط راننده{% endblock %}
+{% block title %}پذیرش درخواست‌ها و مدیریت سفر{% endblock %}
 
 {% block content %}
 
@@ -15,11 +15,16 @@
     <div id="accessError" class="error-message"></div>
 </div>
 
-<!-- بخش نمایش درخواست‌های فعال -->
+<!-- ✅ دکمه جدید برای نمایش تمام سفرهای فعال -->
+<div class="form-group" style="margin-top: 20px; border-top: 1px solid #ccc; padding-top: 20px;">
+    <button class="button" id="showAllActiveTripsBtn">نمایش تمام سفرهای فعال</button>
+</div>
+
+
+<!-- بخش نمایش درخواست‌های فعال (برای پذیرش) -->
 <div id="requestsSection" style="display:none;">
     <h3>درخواست‌های فعال قابل پذیرش</h3>
-
-    <table border="1" style="width:100%; border-collapse:collapse; text-align:center;">
+    <table border="1" style="width:100%; text-align:center;">
         <thead>
             <tr>
                 <th>انتخاب</th>
@@ -31,27 +36,34 @@
         </thead>
         <tbody id="tripBody"></tbody>
     </table>
-
     <button class="button" id="acceptBtn" style="margin-top:15px;">✅ قبول درخواست‌ها</button>
-    <div id="acceptResult" class="success-box" style="margin-top:10px;"></div>
+    <div id="acceptResult" class="success-box"></div>
 </div>
 
-<!-- بخش نمایش سفرهای پذیرفته‌شده -->
-<h3 style="margin-top:40px;">سفرهای پذیرفته‌شده</h3>
 
+<!-- ✅ بخش جدید برای نمایش تمام سفرهای فعال (که با دکمه پر می‌شود) -->
+<div id="allActiveTripsSection" style="display:none; margin-top:30px;">
+    <h3>تمام سفرهای در حال انجام</h3>
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th>زمان ثبت</th>
+                <th>منطقه</th>
+                <th>نوع درخواست</th>
+                <th>مسافر</th>
+                <th>راننده</th>
+                <th>عملیات</th>
+            </tr>
+        </thead>
+        <tbody id="allActiveTripsBody"></tbody>
+    </table>
+</div>
+
+
+<!-- بخش نمایش سفرهای پذیرفته‌شده (مربوط به یک راننده خاص، اگر از قبل لود شده باشد) -->
+<h3 style="margin-top:40px;">سفرهای پذیرفته‌شده (مربوط به راننده جستجو شده)</h3>
 {% for trip in movements %}
-<table class="table table-bordered" style="margin-bottom:30px;">
-    <thead>
-        <tr>
-            <th>زمان ثبت</th>
-            <th>منطقه</th>
-            <th>نوع درخواست</th>
-            <th>مسافر</th>
-            <th>راننده</th>
-            <th>وضعیت سفر</th>
-            <th>عملیات</th>
-        </tr>
-    </thead>
+<table class="table table-bordered" data-trip-id="{{ trip.id }}">
     <tbody>
         <tr>
             <td>{{ trip.created_at }}</td>
@@ -59,13 +71,6 @@
             <td>{{ trip.request_type }}</td>
             <td>{{ trip.passenger.username }}</td>
             <td>{{ trip.driver.username }}</td>
-            <td>
-                {% if trip.is_finished %}
-                    <span style="color:green;">✅ پایان‌یافته</span>
-                {% else %}
-                    <span style="color:orange;">در حال انجام</span>
-                {% endif %}
-            </td>
             <td>
                 {% if not trip.is_finished %}
                     <button class="btn btn-success btn-sm end-trip" data-id="{{ trip.id }}">پایان سفر</button>
@@ -76,12 +81,12 @@
     </tbody>
 </table>
 {% empty %}
-<p style="color:gray;">هیچ سفری پذیرفته نشده است.</p>
+<p style="color:gray;">برای راننده مشخصی سفری یافت نشد.</p>
 {% endfor %}
 
 
 <script>
-// عناصر DOM
+// === عناصر DOM ===
 const driverInput = document.getElementById('driverName');
 const checkBtn = document.getElementById('checkAccessBtn');
 const tripBody = document.getElementById('tripBody');
@@ -89,9 +94,17 @@ const requestsSection = document.getElementById('requestsSection');
 const accessError = document.getElementById('accessError');
 const acceptBtn = document.getElementById('acceptBtn');
 const acceptResult = document.getElementById('acceptResult');
+
+// ✅ عناصر جدید
+const showAllActiveTripsBtn = document.getElementById('showAllActiveTripsBtn');
+const allActiveTripsSection = document.getElementById('allActiveTripsSection');
+const allActiveTripsBody = document.getElementById('allActiveTripsBody');
 let driverId = null;
 
-// بررسی دسترسی راننده و دریافت داده‌های سفر
+// === رویدادها (Event Listeners) ===
+
+// 1. بررسی دسترسی راننده (مثل قبل)
+checkBtn.addEventListener('click', async () => { /* ... کد این بخش بدون تغییر باقی می‌ماند ... */ });
 checkBtn.addEventListener('click', async () => {
     accessError.textContent = '';
     tripBody.innerHTML = '';
@@ -107,24 +120,17 @@ checkBtn.addEventListener('click', async () => {
 
     const res = await fetch("{% url 'check_driver_access' %}", {
         method: "POST",
-        headers: {
-            "Content-Type": "application/x-www-form-urlencoded",
-            "X-CSRFToken": "{{ csrf_token }}"
-        },
+        headers: {"Content-Type": "application/x-www-form-urlencoded", "X-CSRFToken": "{{ csrf_token }}"},
         body: new URLSearchParams({ driver_name: driverName })
     });
 
     const data = await res.json();
-
     if (data.error) {
         accessError.textContent = data.error;
         return;
     }
-
-    // نمایش درخواست‌ها
     requestsSection.style.display = "block";
     driverId = data.driver_id || null;
-
     data.trips.forEach(trip => {
         const tr = document.createElement('tr');
         tr.innerHTML = `
@@ -138,7 +144,9 @@ checkBtn.addEventListener('click', async () => {
     });
 });
 
-// پذیرش درخواست‌ها
+
+// 2. پذیرش درخواست‌ها (مثل قبل)
+acceptBtn.addEventListener('click', async () => { /* ... کد این بخش بدون تغییر باقی می‌ماند ... */ });
 acceptBtn.addEventListener('click', async () => {
     const checked = [...document.querySelectorAll('input[name="trip_ids"]:checked')].map(x => x.value);
 
@@ -155,61 +163,92 @@ acceptBtn.addEventListener('click', async () => {
     formData.append('driver_id', driverId);
     checked.forEach(id => formData.append('trip_ids', id));
 
-    const res = await fetch("{% url 'accept_requests' %}", {
-        method: "POST",
-        body: formData
-        // CSRFToken is not needed if you use @csrf_exempt
-    });
-
+    const res = await fetch("{% url 'accept_requests' %}", { method: "POST", body: formData });
     const data = await res.json();
 
     if (res.ok) {
-        acceptResult.textContent = 'درخواست‌ها با موفقیت پذیرفته شدند. در حال بارگذاری مجدد...';
-        
-        // ✅ **اصلاح شد**: رفرش صفحه با حفظ شناسه راننده
+        acceptResult.textContent = 'درخواست‌ها با موفقیت پذیرفته شدند. در حال هدایت به صف...';
         setTimeout(() => {
-            window.location.href = `/ride/driver_accept_page/?driver_id=${driverId}`;
+            window.location.href = "{% url 'driver_queue_page' %}";
         }, 1500);
-
     } else {
         acceptResult.textContent = 'خطا در ثبت پذیرش: ' + (data.error || 'خطای نامشخص');
     }
 });
-// حذف سفر پذیرفته‌شده
-document.querySelectorAll('.delete-trip').forEach(btn => {
-    btn.addEventListener('click', async () => {
-        const tripId = btn.getAttribute('data-id');
-        const confirmed = confirm('آیا از حذف این سفر مطمئن هستید؟');
-        if (!confirmed) return;
 
-        const response = await fetch(`/ride/delete_trip/${tripId}/`, { method: 'POST' });
-        if (response.ok) {
-            btn.closest('table').remove();
-            console.log(`Trip ${tripId} deleted`);
-        } else {
-            alert('خطا در حذف سفر.');
+
+// ✅ 3. نمایش تمام سفرهای فعال (کد جدید)
+showAllActiveTripsBtn.addEventListener('click', async () => {
+    allActiveTripsBody.innerHTML = '<tr><td colspan="6">در حال بارگذاری...</td></tr>';
+    allActiveTripsSection.style.display = 'block';
+
+    try {
+        const res = await fetch("{% url 'get_all_active_trips_api' %}");
+        const data = await res.json();
+
+        allActiveTripsBody.innerHTML = ''; // پاک کردن محتوای قبلی
+
+        if (data.trips.length === 0) {
+            allActiveTripsBody.innerHTML = '<tr><td colspan="6" style="text-align:center; color:gray;">هیچ سفر فعالی یافت نشد.</td></tr>';
+            return;
         }
-    });
+
+        data.trips.forEach(trip => {
+            const tr = document.createElement('tr');
+            tr.setAttribute('data-trip-id', trip.id); // برای عملیات حذف و پایان
+            tr.innerHTML = `
+                <td>${trip.created_at}</td>
+                <td>${trip.zone}</td>
+                <td>${trip.request_type}</td>
+                <td>${trip.passenger}</td>
+                <td>${trip.driver}</td>
+                <td>
+                    <button class="btn btn-success btn-sm end-trip" data-id="${trip.id}">پایان سفر</button>
+                    <button class="btn btn-danger btn-sm delete-trip" data-id="${trip.id}">حذف</button>
+                </td>
+            `;
+            allActiveTripsBody.appendChild(tr);
+        });
+    } catch (error) {
+        allActiveTripsBody.innerHTML = '<tr><td colspan="6" style="color:red;">خطا در دریافت اطلاعات.</td></tr>';
+        console.error("Error fetching active trips:", error);
+    }
 });
 
-// پایان سفر
-document.querySelectorAll('.end-trip').forEach(btn => {
-    btn.addEventListener('click', async () => {
-        const tripId = btn.dataset.id;
+// ✅ 4. مدیریت رویدادهای کلیک برای حذف و پایان سفر (به روش Event Delegation)
+// این روش تضمین می‌کند که دکمه‌های جدیدی که با جاوااسکریپت ساخته می‌شوند هم کار کنند.
+document.addEventListener('click', async (event) => {
+    const target = event.target;
+    
+    // --- مدیریت پایان سفر ---
+    if (target.matches('.end-trip')) {
+        const tripId = target.dataset.id;
+        if (!confirm('آیا از پایان این سفر مطمئن هستید؟')) return;
+
         const res = await fetch(`/ride/finish_trip/${tripId}/`, { method: 'POST' });
         const data = await res.json();
 
-        if (data.success) {
-            btn.closest('table').querySelector('td:nth-child(6)').innerHTML =
-                '<span style="color:green;">✅ پایان‌یافته</span>';
-            btn.remove();
-            console.log(`Trip ${tripId} finished`);
+        if (res.ok && data.success) {
+            target.closest('tr, table[data-trip-id]').remove(); // ردیف یا جدول مربوطه را حذف کن
         } else {
             alert(data.error || 'خطا در پایان سفر');
         }
-    });
+    }
+
+    // --- مدیریت حذف سفر ---
+    if (target.matches('.delete-trip')) {
+        const tripId = target.dataset.id;
+        if (!confirm('آیا از حذف این سفر مطمئن هستید؟')) return;
+
+        const response = await fetch(`/ride/delete_trip/${tripId}/`, { method: 'POST' });
+        if (response.ok) {
+            target.closest('tr, table[data-trip-id]').remove(); // ردیف یا جدول مربوطه را حذف کن
+        } else {
+            alert('خطا در حذف سفر.');
+        }
+    }
 });
+
 </script>
 
 {% endblock %}
-

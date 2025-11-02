@@ -1,0 +1,88 @@
+{% extends 'base.html' %}
+
+{% block title %}🧾 گزارش سفرهای انجام‌شده{% endblock %}
+
+{% block content %}
+
+<h2 style="text-align:center; color:var(--accent);">📊 گزارش سفرهای انجام‌شده</h2>
+
+<form id="dateRangeForm" style="max-width:700px; margin:30px auto; text-align:center;">
+    <div class="form-group">
+        <label>از تاریخ:</label>
+        <input type="datetime-local" id="startDate" name="startDate">
+    </div>
+    <div class="form-group">
+        <label>تا تاریخ:</label>
+        <input type="datetime-local" id="endDate" name="endDate">
+    </div>
+    <button type="submit" class="button">نمایش سفرها در بازه</button>
+</form>
+
+<hr style="border-color:var(--table-border); margin:30px auto; width:80%;">
+
+<h3 id="tripSummary" style="text-align:center;">آخرین ۱۰ سفر ثبت‌شده</h3>
+
+<table id="tripHistoryTable">
+    <thead>
+        <tr>
+            <th>راننده</th>
+            <th>مسافر</th>
+            <th>منطقه</th>
+            <th>نوع درخواست</th>
+            <th>زمان شروع</th>
+            <th>زمان پایان</th>
+        </tr>
+    </thead>
+    <tbody id="tripHistoryBody"></tbody>
+</table>
+
+<script>
+async function loadTrips(startDate = null, endDate = null) {
+    let url = "/ride/trip_history_api/";
+    if (startDate && endDate) {
+        url += `?start=${startDate}&end=${endDate}`;
+    }
+
+    const res = await fetch(url);
+    const data = await res.json();
+
+    const tbody = document.getElementById("tripHistoryBody");
+    const summary = document.getElementById("tripSummary");
+    tbody.innerHTML = "";
+
+    if (data.trips && data.trips.length > 0) {
+        summary.textContent = `تعداد سفرها: ${data.trips.length}`;
+        data.trips.forEach(t => {
+            const row = `
+                <tr>
+                    <td>${t.driver}</td>
+                    <td>${t.passenger}</td>
+                    <td>${t.region}</td>
+                    <td>${t.request_type}</td>
+                    <td>${t.start_time}</td>
+                    <td>${t.finish_time}</td>
+                </tr>`;
+            tbody.innerHTML += row;
+        });
+    } else {
+        summary.textContent = "هیچ سفری در این بازه یافت نشد.";
+    }
+}
+
+// بارگذاری اولیه (آخرین 10 سفر)
+window.addEventListener('load', () => loadTrips());
+
+// فیلتر بازه زمانی
+document.getElementById('dateRangeForm').addEventListener('submit', e => {
+    e.preventDefault();
+    const start = document.getElementById('startDate').value;
+    const end = document.getElementById('endDate').value;
+    if (!start || !end) {
+        alert('لطفاً هر دو تاریخ را انتخاب کنید.');
+        return;
+    }
+    loadTrips(start, end);
+});
+</script>
+
+{% endblock %}

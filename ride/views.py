@@ -6,9 +6,11 @@ from django.shortcuts import render, redirect
 from users.models import User
 from django.http import JsonResponse
 from django.db.models import Q
-from .models import DriverQueue, AcceptedTrip, CurrentTripe
+from .models import DriverQueue, AcceptedTrip, CurrentTripe , AcceptedTripTable
 from django.shortcuts import redirect, get_object_or_404
 from django.views.decorators.csrf import csrf_exempt
+from django.utils import timezone
+from datetime import datetime
 
 class CurrentTripeViewSet(viewsets.ModelViewSet):
     queryset = CurrentTripe.objects.all()
@@ -209,6 +211,7 @@ def add_driver_to_queue(request):
 
 
 # تست دسترسی نفر اول به لیست درخواست‌های مسافر
+@csrf_exempt
 def check_driver_access(request):
     driver_name = request.POST.get('driver_name')
     driver = User.objects.filter(name=driver_name, role='راننده').first()
@@ -370,46 +373,107 @@ def driver_accept_page(request):
 # حذف درخاست قبول شده
 @csrf_exempt
 def delete_trip(request, trip_id):
-    """
-    ✅ **اصلاح کامل شد**: این ویو حالا سفر را از جدول AcceptedTrip حذف می‌کند.
-    """
-    if request.method == 'POST':
-        try:
-            # FIX: مدل از CurrentTripe به AcceptedTrip تغییر کرد
-            trip = get_object_or_404(AcceptedTrip, id=trip_id)
-            trip.delete()
-            return JsonResponse({'status': 'deleted'})
-        except AcceptedTrip.DoesNotExist:
-            return JsonResponse({'error': 'سفر پذیرفته‌شده یافت نشد.'}, status=404)
-    return JsonResponse({'error': 'متد نامعتبر'}, status=405)
+    if request.method != 'POST':
+        return JsonResponse({'status': 'invalid_method'}, status=405)
+
+    try:
+        trip = AcceptedTrip.objects.get(id=trip_id)
+        trip.delete()
+        return JsonResponse({'status': 'deleted'})
+    except AcceptedTrip.DoesNotExist:
+        return JsonResponse({'status': 'not_found'}, status=404)
+
 
 
 # پایاین سفر توسط راننده
 @csrf_exempt
 def finish_trip(request, trip_id):
-    """
-    راننده پایان سفر را اعلام می‌کند
-    ✅ **اصلاح شد**: آپدیت مسافر حالا دقیق و ایمن است.
-    """
     try:
         trip = AcceptedTrip.objects.get(id=trip_id)
     except AcceptedTrip.DoesNotExist:
         return JsonResponse({'error': 'سفر یافت نشد'}, status=404)
 
-    # ۱. علامت‌گذاری سفر به‌عنوان انجام‌شده
-    trip.is_finished = True
-    trip.save(update_fields=['is_finished'])
+    # ✅ انتقال داده به جدول آرشیو
+    archive = AcceptedTripTable.objects.create(
+        driver=trip.driver,
+        passenger=trip.passenger,
+        region=trip.zone,                 # فیلد معادل region ← zone
+        request_type=trip.request_type,
+        start_time=trip.created_at        # در مدل جاری اسمش created_at است
+        # finish_time خودکار ثبت می‌شود (auto_now_add)
+    )
+    print(f"✅ سفر آرشیو شد (ID={archive.id})")
 
-    # ۲. راننده دوباره فعال می‌شود
-    driver_queue, _ = DriverQueue.objects.get_or_create(driver=trip.driver, zone=trip.zone)
-    driver_queue.is_active = True
-    driver_queue.save()
+    # ✅ فعال‌سازی دوباره راننده در صف
+    driver_queue = DriverQueue.objects.filter(driver=trip.driver, zone=trip.zone).first()
+    if driver_queue:
+        driver_queue.is_active = True
+        driver_queue.save(update_fields=['is_active'])
+        print("🟢 راننده دوباره فعال شد در صف")
 
-    # ۳. ✅ مسافر دوباره اجازه درخواست سفر دارد (به‌صورت دقیق)
+    # ✅ اگر رکورد CurrentTrip متصل وجود دارد، بستن آن
     if trip.current_trip:
-        original_trip = trip.current_trip
-        original_trip.is_completed = True
-        original_trip.save(update_fields=['is_completed'])
+        trip.current_trip.is_completed = True
+        trip.current_trip.save(update_fields=['is_completed'])
+        print("🔵 وضعیت سفر مسافر بسته شد")
 
-    return JsonResponse({'success': True, 'message': 'سفر با موفقیت به پایان رسید.'})
+    # ✅ حذف از جدول AcceptedTrip
+    trip.delete()
+    print("⚪ سفر فعال از جدول AcceptedTrip حذف شد")
+
+    return JsonResponse({'success': True, 'message': 'سفر پایان یافت و در تاریخچه ذخیره شد.'})
+
+
+# چه سفر هایی انجام شده بین بازه مشخص 
+def driver_trip_history_page(request):
+    return render(request, "ride/driver_trip_history.html")
+
+# چه سفر هایی انجام شده بین بازه مشخص 
+def driver_trip_history_page(request):
+    return render(request, "ride/driver_trip_history.html")
+
+def trip_history_api(request):
+    start = request.GET.get("start")
+    end = request.GET.get("end")
+
+    trips = AcceptedTripTable.objects.all().order_by("-finish_time")[:10]
+
+    if start and end:
+        trips = trips.filter(finish_time__range=[start, end])
+
+    data = []
+    for t in trips:
+        data.append({
+            "driver": t.driver.username if t.driver else None,
+            "passenger": t.passenger.username if t.passenger else None,
+            "region": t.region,
+            "request_type": t.request_type,
+            "start_time": t.start_time.strftime("%Y-%m-%d %H:%M"),
+            "finish_time": t.finish_time.strftime("%Y-%m-%d %H:%M"),
+        })
+
+    return JsonResponse({"trips": data})
+
+
+# ✅ ویو جدید برای دریافت تمام سفرهای فعال
+def get_all_active_trips_api(request):
+    """
+    یک API که لیست تمام سفرهای پذیرفته‌شده و در حال انجام را برمی‌گرداند.
+    """
+    # فقط سفرهایی که is_finished=False هستند
+    active_trips = AcceptedTrip.objects.filter(is_finished=False).order_by('-created_at')
+    
+    data = []
+    for trip in active_trips:
+        data.append({
+            'id': trip.id,
+            'created_at': trip.created_at.strftime('%Y-%m-%d %H:%M'), # فرمت‌بندی تاریخ برای خوانایی
+            'zone': trip.zone,
+            'request_type': trip.request_type,
+            'passenger': trip.passenger.username,
+            'driver': trip.driver.username,
+        })
+
+    return JsonResponse({'trips': data})
+
 
