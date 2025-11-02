@@ -432,27 +432,39 @@ def driver_trip_history_page(request):
 def driver_trip_history_page(request):
     return render(request, "ride/driver_trip_history.html")
 
+
+
 def trip_history_api(request):
-    start = request.GET.get("start")
-    end = request.GET.get("end")
-
-    trips = AcceptedTripTable.objects.all().order_by("-finish_time")[:10]
-
-    if start and end:
-        trips = trips.filter(finish_time__range=[start, end])
+    """
+    API برای دریافت تاریخچه سفرها با تبدیل زمان به وقت محلی.
+    """
+    # اینجا می‌توانید منطق فیلتر تاریخ را اضافه کنید
+    # start_date = request.GET.get('start')
+    # end_date = request.GET.get('end')
+    # if start_date and end_date:
+    #     trips = AcceptedTripTable.objects.filter(finish_time__range=[start_date, end_date])
+    # else:
+    trips = AcceptedTripTable.objects.all().order_by('-finish_time')[:10] # مثلاً آخرین ۱۰ سفر
 
     data = []
-    for t in trips:
-        data.append({
-            "driver": t.driver.username if t.driver else None,
-            "passenger": t.passenger.username if t.passenger else None,
-            "region": t.region,
-            "request_type": t.request_type,
-            "start_time": t.start_time.strftime("%Y-%m-%d %H:%M"),
-            "finish_time": t.finish_time.strftime("%Y-%m-%d %H:%M"),
-        })
+    for trip in trips:
+        local_start_time = timezone.localtime(trip.start_time) if trip.start_time else None
+        local_finish_time = timezone.localtime(trip.finish_time) if trip.finish_time else None
 
-    return JsonResponse({"trips": data})
+        data.append({
+            'id': trip.id,  # ✅✅✅ این خط اضافه شد تا ID به فرانت‌اند ارسال شود
+            'driver': trip.driver.username,
+            'passenger': trip.passenger.username,
+            'region': trip.region,
+            'request_type': trip.request_type,
+            'start_time': local_start_time.strftime('%H:%M %Y-%m-%d') if local_start_time else 'N/A',
+            'finish_time': local_finish_time.strftime('%H:%M %Y-%m-%d') if local_finish_time else 'N/A',
+        })
+    
+    return JsonResponse({'trips': data, 'count': len(data)})
+
+
+
 
 
 # ✅ ویو جدید برای دریافت تمام سفرهای فعال
@@ -475,5 +487,65 @@ def get_all_active_trips_api(request):
         })
 
     return JsonResponse({'trips': data})
+
+
+def get_all_active_trips_api(request):
+    """
+    API که لیست تمام سفرهای فعال را با زمان محلی برمی‌گرداند.
+    """
+    active_trips = AcceptedTrip.objects.filter(is_finished=False).order_by('-created_at')
+    
+    data = []
+    for trip in active_trips:
+        # ✅ تبدیل زمان created_at به وقت محلی
+        local_created_at = timezone.localtime(trip.created_at)
+
+        data.append({
+            'id': trip.id,
+            # ✅ استفاده از زمان تبدیل‌شده
+            'created_at': local_created_at.strftime('%H:%M %Y-%m-%d'),
+            'zone': trip.zone,
+            'request_type': trip.request_type,
+            'passenger': trip.passenger.username,
+            'driver': trip.driver.username,
+        })
+
+    return JsonResponse({'trips': data})
+
+
+@csrf_exempt # برای اینکه خطای 403 (Forbidden) نگیریم
+def delete_trip_from_history(request, trip_id):
+    """
+    یک سفر را از جدول تاریخچه (AcceptedTripTable) حذف می‌کند.
+    """
+    if request.method == 'POST':
+        try:
+            # سفر مورد نظر را پیدا کن
+            trip_to_delete = AcceptedTripTable.objects.get(id=trip_id)
+            # و حذفش کن
+            trip_to_delete.delete()
+            return JsonResponse({'status': 'success', 'message': 'سفر با موفقیت حذف شد.'})
+        except AcceptedTripTable.DoesNotExist:
+            return JsonResponse({'status': 'error', 'message': 'سفر یافت نشد.'}, status=404)
+        except Exception as e:
+            # برای خطاهای پیش‌بینی نشده
+            return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+    
+    return JsonResponse({'status': 'error', 'message': 'درخواست نامعتبر است.'}, status=400)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 

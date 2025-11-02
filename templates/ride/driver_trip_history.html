@@ -31,6 +31,7 @@
             <th>نوع درخواست</th>
             <th>زمان شروع</th>
             <th>زمان پایان</th>
+            <th>عملیات</th> <!-- ✅ ستون جدید برای دکمه حذف -->
         </tr>
     </thead>
     <tbody id="tripHistoryBody"></tbody>
@@ -38,38 +39,81 @@
 
 <script>
 async function loadTrips(startDate = null, endDate = null) {
-    let url = "/ride/trip_history_api/";
+    // ✅ URL را برای دریافت داده‌های تاریخچه اصلاح می‌کنیم
+    let url = "{% url 'trip_history_api' %}"; 
     if (startDate && endDate) {
         url += `?start=${startDate}&end=${endDate}`;
     }
 
-    const res = await fetch(url);
-    const data = await res.json();
+    try {
+        const res = await fetch(url);
+        const data = await res.json();
 
-    const tbody = document.getElementById("tripHistoryBody");
-    const summary = document.getElementById("tripSummary");
-    tbody.innerHTML = "";
+        const tbody = document.getElementById("tripHistoryBody");
+        const summary = document.getElementById("tripSummary");
+        tbody.innerHTML = ""; // پاک کردن جدول قبل از بارگذاری داده جدید
 
-    if (data.trips && data.trips.length > 0) {
-        summary.textContent = `تعداد سفرها: ${data.trips.length}`;
-        data.trips.forEach(t => {
-            const row = `
-                <tr>
-                    <td>${t.driver}</td>
-                    <td>${t.passenger}</td>
-                    <td>${t.region}</td>
-                    <td>${t.request_type}</td>
-                    <td>${t.start_time}</td>
-                    <td>${t.finish_time}</td>
-                </tr>`;
-            tbody.innerHTML += row;
-        });
-    } else {
-        summary.textContent = "هیچ سفری در این بازه یافت نشد.";
+        if (data.trips && data.trips.length > 0) {
+            summary.textContent = `تعداد سفرها: ${data.trips.length}`;
+            data.trips.forEach(t => {
+                // ✅ یک ردیف جدید در جدول با دکمه حذف می‌سازیم
+                const row = `
+                    <tr>
+                        <td>${t.driver}</td>
+                        <td>${t.passenger}</td>
+                        <td>${t.region}</td>
+                        <td>${t.request_type}</td>
+                        <td>${t.start_time}</td>
+                        <td>${t.finish_time}</td>
+                        <td>
+                            <!-- دکمه حذف با data-id برای نگهداری شناسه سفر -->
+                            <button class="button button-danger" data-id="${t.id}">حذف</button>
+                        </td>
+                    </tr>`;
+                tbody.innerHTML += row;
+            });
+        } else {
+            summary.textContent = "هیچ سفری در این بازه یافت نشد.";
+        }
+    } catch (error) {
+        console.error("خطا در بارگذاری سفرها:", error);
+        document.getElementById("tripSummary").textContent = "خطا در ارتباط با سرور.";
     }
 }
 
-// بارگذاری اولیه (آخرین 10 سفر)
+// ✅✅✅ منطق جدید برای مدیریت کلیک روی دکمه‌های حذف ✅✅✅
+document.getElementById('tripHistoryBody').addEventListener('click', async (event) => {
+    // فقط اگر روی دکمه‌ای با کلاس button-danger کلیک شده بود، ادامه بده
+    if (event.target && event.target.classList.contains('button-danger')) {
+        const tripId = event.target.dataset.id; // شناسه سفر را از دکمه بخوان
+        
+        // از کاربر تایید بگیر
+        if (confirm(`آیا از حذف سفر با شناسه ${tripId} مطمئن هستید؟`)) {
+            try {
+                const response = await fetch(`/ride/delete_trip_history/${tripId}/`, {
+                    method: 'POST',
+                });
+
+                if (response.ok) {
+                    // اگر حذف موفق بود، ردیف را از جدول پاک کن
+                    const rowToDelete = event.target.closest('tr');
+                    rowToDelete.remove();
+                    alert('سفر با موفقیت حذف شد.');
+                } else {
+                    // اگر سرور خطا داد
+                    const errorData = await response.json();
+                    alert(`خطا در حذف: ${errorData.message}`);
+                }
+            } catch (error) {
+                console.error("خطای شبکه:", error);
+                alert('خطای ارتباطی در هنگام حذف سفر.');
+            }
+        }
+    }
+});
+
+
+// بارگذاری اولیه (آخرین ۱۰ سفر)
 window.addEventListener('load', () => loadTrips());
 
 // فیلتر بازه زمانی
