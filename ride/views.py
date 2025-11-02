@@ -50,8 +50,9 @@ def create_tripe(request):
         passenger = get_object_or_404(User, id=user_id, role='مسافر')
 
         # ⛔ کنترل تکرار: اگر سفر فعال دارد
-        if CurrentTripe.objects.filter(passenger=passenger, is_active=True).exists():
-            return JsonResponse({'error': 'این مسافر در حال حاضر سفر فعالی دارد و نمی‌تواند درخواست جدید ثبت کند.'}, status=400)
+        if CurrentTripe.objects.filter(passenger=passenger, is_active=True, is_completed=False).exists():
+            return JsonResponse({'error': 'این مسافر در حال حاضر در سفر است یا سفرش هنوز تمام نشده و نمی‌تواند درخواست جدید ثبت کند.'}, status=400)
+
 
         # ✅ ایجاد سفر فعال
         current = CurrentTripe.objects.create(
@@ -270,13 +271,13 @@ def accept_requests(request):
     if not driver_id or not trip_ids:
         return JsonResponse({'error': 'شناسه راننده یا لیست درخواست‌ها ارسال نشده است'}, status=400)
 
-    # بررسی وجود راننده
+    # ------------------ بررسی راننده ------------------
     try:
         driver = User.objects.get(id=driver_id, role='راننده')
     except User.DoesNotExist:
         return JsonResponse({'error': 'راننده یافت نشد'}, status=404)
 
-    # بررسی اینکه راننده در صف فعال هست
+    # ------------------ بررسی صف فعال ------------------
     active_queue = DriverQueue.objects.filter(driver=driver, is_active=True).first()
     if not active_queue:
         return JsonResponse({'error': 'راننده در صف فعال نیست'}, status=403)
@@ -284,7 +285,7 @@ def accept_requests(request):
     zone = active_queue.zone
     all_drivers = list(DriverQueue.objects.filter(zone=zone, is_active=True).order_by('joined_at'))
 
-    # بررسی جایگاه راننده
+    # ------------------ جایگاه راننده ------------------
     try:
         driver_index = all_drivers.index(active_queue)
     except ValueError:
@@ -293,46 +294,49 @@ def accept_requests(request):
     if driver_index != 0:
         return JsonResponse({'error': 'راننده باید نفر اول صف باشد'}, status=403)
 
-    # دریافت درخواست‌های فعال انتخاب‌شده
+    # ------------------ دریافت درخواست‌های فعال انتخاب‌شده ------------------
     chosen_trips = list(CurrentTripe.objects.filter(id__in=trip_ids, is_active=True))
     if not chosen_trips:
         return JsonResponse({'error': 'هیچ درخواست فعالی یافت نشد'}, status=404)
 
+    # ------------------ تشخیص نوع درخواست ------------------
     types = [trip.request_type for trip in chosen_trips]
 
-    # ------------------ قوانین پذیرش ------------------
+    # ---- قوانین پذیرش ----
     if 'vip' in types:
         chosen_trips = [t for t in chosen_trips if t.request_type == 'vip']
 
     elif 'hurryup' in types:
         chosen_trips = [t for t in chosen_trips if t.request_type == 'hurryup']
 
-    elif all(t == 'normal' for t in types):
+    elif all(t.request_type == 'normal' for t in chosen_trips):
         if len(chosen_trips) > 4:
             return JsonResponse({'error': 'حداکثر ۴ درخواست نرمال مجاز است'}, status=400)
         # مجاز است ادامه بده
     else:
         return JsonResponse({'error': 'ترکیب نوع درخواست معتبر نیست'}, status=400)
 
-    # ------------------ ثبت پذیرش ------------------
+    # ------------------ ثبت پذیرش نهایی ------------------
     for trip in chosen_trips:
+        # ساخت رکورد AcceptedTrip برای هر سفر پذیرفته‌شده
         AcceptedTrip.objects.create(
+            current_trip=trip,  # ✅ **اصلاح شد**: اتصال به درخواست اولیه
             driver=driver,
             passenger=trip.passenger,
             request_type=trip.request_type,
             zone=zone
         )
-        trip.is_active = False
-        trip.save()
 
-    # ✅ فقط درخواست‌های انتخاب‌شده غیرفعال شوند
-    CurrentTripe.objects.filter(id__in=trip_ids).update(is_active=False)
+        # غیرفعال شدن سفر در CurrentTripe فقط برای انتخاب‌شده
+        trip.is_active = False
+        # is_completed را اینجا False نگه می‌داریم تا در پایان سفر True شود
+        trip.save(update_fields=['is_active'])
 
     # خروج راننده از صف
     active_queue.is_active = False
-    active_queue.save()
+    active_queue.save(update_fields=['is_active'])
 
-    # پاسخ موفق
+    # ------------------ پاسخ موفق ------------------
     return JsonResponse({
         'success': True,
         'accepted_count': len(chosen_trips),
@@ -345,5 +349,67 @@ def accept_requests(request):
 
 # مشاهده درخاست صفحه درخاست مسافر قبول کردن
 def driver_accept_page(request):
-    movements = AcceptedTrip.objects.all().order_by('-created_at')
-    return render(request, 'ride/driver_accept_page.html', {'movements': movements})
+    driver_id = request.GET.get('driver_id')
+
+    if not driver_id:  
+        # یعنی هنوز چیزی نفرستادی، فقط فرم رو نشون بده
+        return render(request, 'ride/driver_accept_page.html', {
+            'driver': None,
+            'movements': []
+        })
+
+    driver = get_object_or_404(User, id=driver_id, role='راننده')
+    movements = AcceptedTrip.objects.filter(driver=driver).order_by('-created_at')
+
+    return render(request, 'ride/driver_accept_page.html', {
+        'driver': driver,
+        'movements': movements
+    })
+
+
+# حذف درخاست قبول شده
+@csrf_exempt
+def delete_trip(request, trip_id):
+    """
+    ✅ **اصلاح کامل شد**: این ویو حالا سفر را از جدول AcceptedTrip حذف می‌کند.
+    """
+    if request.method == 'POST':
+        try:
+            # FIX: مدل از CurrentTripe به AcceptedTrip تغییر کرد
+            trip = get_object_or_404(AcceptedTrip, id=trip_id)
+            trip.delete()
+            return JsonResponse({'status': 'deleted'})
+        except AcceptedTrip.DoesNotExist:
+            return JsonResponse({'error': 'سفر پذیرفته‌شده یافت نشد.'}, status=404)
+    return JsonResponse({'error': 'متد نامعتبر'}, status=405)
+
+
+# پایاین سفر توسط راننده
+@csrf_exempt
+def finish_trip(request, trip_id):
+    """
+    راننده پایان سفر را اعلام می‌کند
+    ✅ **اصلاح شد**: آپدیت مسافر حالا دقیق و ایمن است.
+    """
+    try:
+        trip = AcceptedTrip.objects.get(id=trip_id)
+    except AcceptedTrip.DoesNotExist:
+        return JsonResponse({'error': 'سفر یافت نشد'}, status=404)
+
+    # ۱. علامت‌گذاری سفر به‌عنوان انجام‌شده
+    trip.is_finished = True
+    trip.save(update_fields=['is_finished'])
+
+    # ۲. راننده دوباره فعال می‌شود
+    driver_queue, _ = DriverQueue.objects.get_or_create(driver=trip.driver, zone=trip.zone)
+    driver_queue.is_active = True
+    driver_queue.save()
+
+    # ۳. ✅ مسافر دوباره اجازه درخواست سفر دارد (به‌صورت دقیق)
+    if trip.current_trip:
+        original_trip = trip.current_trip
+        original_trip.is_completed = True
+        original_trip.save(update_fields=['is_completed'])
+
+    return JsonResponse({'success': True, 'message': 'سفر با موفقیت به پایان رسید.'})
+

@@ -38,30 +38,50 @@
 
 <!-- بخش نمایش سفرهای پذیرفته‌شده -->
 <h3 style="margin-top:40px;">سفرهای پذیرفته‌شده</h3>
-<table border="1" style="width:100%; border-collapse:collapse; text-align:center;">
+
+{% for trip in movements %}
+<table class="table table-bordered" style="margin-bottom:30px;">
     <thead>
         <tr>
-            <th>راننده</th>
-            <th>مسافر</th>
-            <th>نوع درخواست</th>
-            <th>منطقه</th>
             <th>زمان ثبت</th>
+            <th>منطقه</th>
+            <th>نوع درخواست</th>
+            <th>مسافر</th>
+            <th>راننده</th>
+            <th>وضعیت سفر</th>
+            <th>عملیات</th>
         </tr>
     </thead>
-    <tbody id="acceptedBody">
-        {% for item in movements %}
-            <tr>
-                <td>{{ item.driver.name }}</td>
-                <td>{{ item.passenger.name }}</td>
-                <td>{{ item.request_type }}</td>
-                <td>{{ item.zone }}</td>
-                <td>{{ item.created_at }}</td>
-            </tr>
-        {% endfor %}
+    <tbody>
+        <tr>
+            <td>{{ trip.created_at }}</td>
+            <td>{{ trip.zone }}</td>
+            <td>{{ trip.request_type }}</td>
+            <td>{{ trip.passenger.username }}</td>
+            <td>{{ trip.driver.username }}</td>
+            <td>
+                {% if trip.is_finished %}
+                    <span style="color:green;">✅ پایان‌یافته</span>
+                {% else %}
+                    <span style="color:orange;">در حال انجام</span>
+                {% endif %}
+            </td>
+            <td>
+                {% if not trip.is_finished %}
+                    <button class="btn btn-success btn-sm end-trip" data-id="{{ trip.id }}">پایان سفر</button>
+                {% endif %}
+                <button class="btn btn-danger btn-sm delete-trip" data-id="{{ trip.id }}">حذف</button>
+            </td>
+        </tr>
     </tbody>
 </table>
+{% empty %}
+<p style="color:gray;">هیچ سفری پذیرفته نشده است.</p>
+{% endfor %}
+
 
 <script>
+// عناصر DOM
 const driverInput = document.getElementById('driverName');
 const checkBtn = document.getElementById('checkAccessBtn');
 const tripBody = document.getElementById('tripBody');
@@ -71,6 +91,7 @@ const acceptBtn = document.getElementById('acceptBtn');
 const acceptResult = document.getElementById('acceptResult');
 let driverId = null;
 
+// بررسی دسترسی راننده و دریافت داده‌های سفر
 checkBtn.addEventListener('click', async () => {
     accessError.textContent = '';
     tripBody.innerHTML = '';
@@ -84,7 +105,6 @@ checkBtn.addEventListener('click', async () => {
         return;
     }
 
-    // بررسی دسترسی راننده
     const res = await fetch("{% url 'check_driver_access' %}", {
         method: "POST",
         headers: {
@@ -101,11 +121,10 @@ checkBtn.addEventListener('click', async () => {
         return;
     }
 
-    // دسترسی تأیید شد
+    // نمایش درخواست‌ها
     requestsSection.style.display = "block";
     driverId = data.driver_id || null;
 
-    // نمایش درخواست‌های فعال به‌صورت جدول
     data.trips.forEach(trip => {
         const tr = document.createElement('tr');
         tr.innerHTML = `
@@ -119,6 +138,7 @@ checkBtn.addEventListener('click', async () => {
     });
 });
 
+// پذیرش درخواست‌ها
 acceptBtn.addEventListener('click', async () => {
     const checked = [...document.querySelectorAll('input[name="trip_ids"]:checked')].map(x => x.value);
 
@@ -135,29 +155,61 @@ acceptBtn.addEventListener('click', async () => {
     formData.append('driver_id', driverId);
     checked.forEach(id => formData.append('trip_ids', id));
 
-    // ✅ اصلاح شده:
-    console.log("Driver ID:", driverId);
-
     const res = await fetch("{% url 'accept_requests' %}", {
         method: "POST",
-        headers: {
-            "Content-Type": "application/x-www-form-urlencoded",
-            "X-CSRFToken": "{{ csrf_token }}"
-        },
         body: formData
+        // CSRFToken is not needed if you use @csrf_exempt
     });
 
-    const txt = await res.text();
+    const data = await res.json();
 
     if (res.ok) {
-        acceptResult.textContent = 'درخواست‌ها با موفقیت پذیرفته شدند.';
-        setTimeout(() => location.reload(), 1500);
+        acceptResult.textContent = 'درخواست‌ها با موفقیت پذیرفته شدند. در حال بارگذاری مجدد...';
+        
+        // ✅ **اصلاح شد**: رفرش صفحه با حفظ شناسه راننده
+        setTimeout(() => {
+            window.location.href = `/ride/driver_accept_page/?driver_id=${driverId}`;
+        }, 1500);
+
     } else {
-        acceptResult.textContent = 'خطا در ثبت پذیرش: ' + txt;
+        acceptResult.textContent = 'خطا در ثبت پذیرش: ' + (data.error || 'خطای نامشخص');
     }
+});
+// حذف سفر پذیرفته‌شده
+document.querySelectorAll('.delete-trip').forEach(btn => {
+    btn.addEventListener('click', async () => {
+        const tripId = btn.getAttribute('data-id');
+        const confirmed = confirm('آیا از حذف این سفر مطمئن هستید؟');
+        if (!confirmed) return;
+
+        const response = await fetch(`/ride/delete_trip/${tripId}/`, { method: 'POST' });
+        if (response.ok) {
+            btn.closest('table').remove();
+            console.log(`Trip ${tripId} deleted`);
+        } else {
+            alert('خطا در حذف سفر.');
+        }
+    });
+});
+
+// پایان سفر
+document.querySelectorAll('.end-trip').forEach(btn => {
+    btn.addEventListener('click', async () => {
+        const tripId = btn.dataset.id;
+        const res = await fetch(`/ride/finish_trip/${tripId}/`, { method: 'POST' });
+        const data = await res.json();
+
+        if (data.success) {
+            btn.closest('table').querySelector('td:nth-child(6)').innerHTML =
+                '<span style="color:green;">✅ پایان‌یافته</span>';
+            btn.remove();
+            console.log(`Trip ${tripId} finished`);
+        } else {
+            alert(data.error || 'خطا در پایان سفر');
+        }
+    });
 });
 </script>
 
-
-
 {% endblock %}
+

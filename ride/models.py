@@ -16,6 +16,7 @@ class CurrentTripe(models.Model):
     request_time = models.TimeField(default=timezone.now)
     request_date = models.DateField(default=timezone.now)
     is_active = models.BooleanField(default=True)  # وضعیت درخواست (فعال یا قبول‌شده/منقضی)
+    is_completed = models.BooleanField(default=False) # بررسی اینکه مسافر به مقصد رسید یا نه 
 
     def __str__(self):
         return f"{self.passenger.full_name} - {self.request_type}"
@@ -65,23 +66,32 @@ class DriverQueue(models.Model):
 
 
 class AcceptedTrip(models.Model):
-
+    # 👇 **این فیلد اضافه شد**
+    # این فیلد، سفر پذیرفته‌شده را به درخواست اولیه‌اش در CurrentTripe متصل می‌کند
+    current_trip = models.OneToOneField(
+        CurrentTripe,
+        on_delete=models.SET_NULL, # اگر درخواست اصلی حذف شد، این رکورد باقی بماند
+        null=True,
+        blank=True,
+        related_name='accepted_info'
+    )
+    
     driver = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
         limit_choices_to={'role': 'راننده'},
-        related_name='accepted_driver_trips'   # ← اضافه شد
+        related_name='accepted_driver_trips'
     )
     passenger = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
         limit_choices_to={'role': 'مسافر'},
-        related_name='accepted_passenger_trips'  # ← اضافه شد
+        related_name='accepted_passenger_trips'
     )
     request_type = models.CharField(max_length=20, choices=REQUEST_TYPE_CHOICES)
     created_at = models.DateTimeField(auto_now_add=True)
     zone = models.CharField(max_length=20, choices=ZONE_CHOICES)
-
+    is_finished = models.BooleanField(default=False)
 
     def __str__(self):
         return f"{self.driver.name} => {self.passenger.name} ({self.request_type})"
