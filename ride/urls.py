@@ -45,4 +45,14 @@ urlpatterns = [
     # حذف سفر از تاریخچه
     path('delete_trip_history/<int:trip_id>/', views.delete_trip_from_history, name='delete_trip_from_history'),
 
+    
+    # ============================================================
+    # ============ API URLs for Flutter Application ==============
+    # ============================================================
+    path('flutter/trips/create/', views.FlutterCreateTripAPIView.as_view(), name='api_flutter_create_trip'),
+    path('flutter/queue/join/', views.FlutterDriverQueueJoinAPIView.as_view(), name='api_flutter_join_queue'),
+    path('flutter/trips/available/', views.FlutterAvailableTripsAPIView.as_view(), name='api_flutter_available_trips'),
+    path('flutter/trips/accept/', views.FlutterDriverAcceptTripAPIView.as_view(), name='api_flutter_accept_trip'),
+    path('flutter/trips/finish/', views.FlutterFinishTripAPIView.as_view(), name='api_flutter_finish_trip'),
+    path('flutter/history/', views.FlutterTripHistoryAPIView.as_view(), name='api_flutter_trip_history'),
 ]

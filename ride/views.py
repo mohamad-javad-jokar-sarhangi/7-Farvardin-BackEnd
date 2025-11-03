@@ -1,7 +1,6 @@
 from rest_framework import viewsets, status
 from rest_framework.response import Response
 from .models import CurrentTripe, TableTripe
-from .Serializer import CurrentTripeSerializer, TableTripeSerializer
 from django.shortcuts import render, redirect
 from users.models import User
 from django.http import JsonResponse
@@ -11,6 +10,14 @@ from django.shortcuts import redirect, get_object_or_404
 from django.views.decorators.csrf import csrf_exempt
 from django.utils import timezone
 from datetime import datetime
+from rest_framework.views import APIView
+from django.db import transaction
+from .Serializer import (
+    DriverQueueSerializer,
+    CurrentTripeSerializer,
+    AcceptedTripSerializer,
+    AcceptedTripTableSerializer,
+)
 
 class CurrentTripeViewSet(viewsets.ModelViewSet):
     queryset = CurrentTripe.objects.all()
@@ -27,9 +34,12 @@ class CurrentTripeViewSet(viewsets.ModelViewSet):
         )
 
 
-class TableTripeViewSet(viewsets.ReadOnlyModelViewSet):
-    queryset = TableTripe.objects.all()
-    serializer_class = TableTripeSerializer
+class AcceptedTripTableViewSet(viewsets.ReadOnlyModelViewSet):
+    """
+    این ViewSet فقط برای نمایش تاریخچه سفرها (خواندنی) است.
+    """
+    queryset = AcceptedTripTable.objects.all()
+    serializer_class = AcceptedTripTableSerializer
 
 
 # صفحه همه کاربرا برای انتخاب
@@ -535,11 +545,129 @@ def delete_trip_from_history(request, trip_id):
 
 
 
+# ride/views.py
+# ... (تمام کدهای قبلی شما اینجا قرار دارند و دست نخورده باقی می‌مانند) ...
+
+# ===================================================================
+# =========== API Views for Flutter Application (START) =============
+# ===================================================================
 
 
 
+def get_user_from_request_data(request_data):
+    """
+    یک تابع کمکی برای پیدا کردن کاربر از روی user_id در دیتای درخواست.
+    """
+    user_id = request_data.get('user_id')
+    if not user_id:
+        return None, Response({'error': 'user_id is required'}, status=status.HTTP_400_BAD_REQUEST)
+    try:
+        user = User.objects.get(id=user_id)
+        return user, None
+    except User.DoesNotExist:
+        return None, Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
 
+class FlutterCreateTripAPIView(APIView):
+    def post(self, request):
+        passenger, error = get_user_from_request_data(request.data)
+        if error: return error
 
+        serializer = CurrentTripeSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save(passenger=passenger)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class FlutterDriverQueueJoinAPIView(APIView):
+    def post(self, request):
+        driver, error = get_user_from_request_data(request.data)
+        if error: return error
+        
+        zone = request.data.get('zone')
+        if not zone:
+            return Response({'error': 'zone is required'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        queue_entry, _ = DriverQueue.objects.update_or_create(
+            driver=driver, defaults={'zone': zone, 'is_active': True, 'joined_at': timezone.now()}
+        )
+        return Response(DriverQueueSerializer(queue_entry).data, status=status.HTTP_200_OK)
+
+class FlutterAvailableTripsAPIView(APIView):
+    def get(self, request):
+        driver, error = get_user_from_request_data(request.query_params)
+        if error: return error
+
+        active_queue = DriverQueue.objects.filter(driver=driver, is_active=True).first()
+        if not active_queue:
+            return Response({'trips': []})
+
+        available_trips = CurrentTripe.objects.filter(is_active=True)
+        return Response({'trips': CurrentTripeSerializer(available_trips, many=True).data})
+
+class FlutterDriverAcceptTripAPIView(APIView):
+    @transaction.atomic
+    def post(self, request):
+        driver, error = get_user_from_request_data(request.data)
+        if error: return error
+
+        active_queue = get_object_or_404(DriverQueue, driver=driver, is_active=True)
+        
+        # منطق پذیرش سفرها (کپی شده از کد قبلی شما)
+        trip_ids = request.data.get('trip_ids', [])
+        chosen_trips = list(CurrentTripe.objects.filter(id__in=trip_ids, is_active=True))
+        
+        accepted_list = []
+        for trip in chosen_trips:
+            accepted = AcceptedTrip.objects.create(
+                current_trip=trip, driver=driver, passenger=trip.passenger,
+                request_type=trip.request_type, zone=active_queue.zone
+            )
+            accepted_list.append(accepted)
+            trip.is_active = False
+            trip.save()
+
+        active_queue.is_active = False
+        active_queue.save()
+        
+        return Response(AcceptedTripSerializer(accepted_list, many=True).data)
+
+class FlutterFinishTripAPIView(APIView):
+    @transaction.atomic
+    def post(self, request):
+        driver, error = get_user_from_request_data(request.data)
+        if error: return error
+        
+        trip_id = request.data.get('trip_id')
+        trip = get_object_or_404(AcceptedTrip, id=trip_id, driver=driver)
+
+        AcceptedTripTable.objects.create(
+            driver=trip.driver, passenger=trip.passenger, region=trip.zone,
+            request_type=trip.request_type, start_time=trip.created_at, finish_time=timezone.now()
+        )
+        
+        DriverQueue.objects.update_or_create(
+            driver=trip.driver, zone=trip.zone,
+            defaults={'is_active': True, 'joined_at': timezone.now()}
+        )
+        
+        trip.delete()
+        return Response({'status': 'success'}, status=status.HTTP_200_OK)
+
+class FlutterTripHistoryAPIView(APIView):
+    def get(self, request):
+        user, error = get_user_from_request_data(request.query_params)
+        if error: return error
+
+        if user.role == 'راننده':
+            trips = AcceptedTripTable.objects.filter(driver=user).order_by('-finish_time')
+        else:
+            trips = AcceptedTripTable.objects.filter(passenger=user).order_by('-finish_time')
+        
+        return Response(AcceptedTripTableSerializer(trips, many=True).data)
+
+# ===================================================================
+# =========== API Views for Flutter Application (END) ===============
+# ===================================================================
 
 
 

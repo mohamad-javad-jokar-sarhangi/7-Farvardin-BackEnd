@@ -1,19 +1,36 @@
+# ride/serializers.py (فایل جدید)
+
 from rest_framework import serializers
-from .models import CurrentTripe, TableTripe
+from .models import CurrentTripe, DriverQueue, AcceptedTrip, AcceptedTripTable
+from users.models import User
+
+class UserBriefSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ['id', 'username', 'name', 'phone']
+
+class DriverQueueSerializer(serializers.ModelSerializer):
+    driver = UserBriefSerializer(read_only=True)
+    class Meta:
+        model = DriverQueue
+        fields = ['id', 'driver', 'zone', 'joined_at', 'is_active']
 
 class CurrentTripeSerializer(serializers.ModelSerializer):
-    passenger_name = serializers.CharField(source='passenger.full_name', read_only=True)
-    passenger_phone = serializers.CharField(source='passenger.phone_number', read_only=True)
-
+    passenger = UserBriefSerializer(read_only=True)
     class Meta:
         model = CurrentTripe
-        fields = '__all__'
+        fields = ['id', 'passenger', 'request_type', 'origin', 'destination', 'request_time', 'request_date', 'is_active']
 
-
-class TableTripeSerializer(serializers.ModelSerializer):
-    passenger_name = serializers.CharField(source='passenger.full_name', read_only=True)
-    passenger_phone = serializers.CharField(source='passenger.phone_number', read_only=True)
-
+class AcceptedTripSerializer(serializers.ModelSerializer):
+    driver = UserBriefSerializer(read_only=True)
+    passenger = UserBriefSerializer(read_only=True)
     class Meta:
-        model = TableTripe
-        fields = '__all__'
+        model = AcceptedTrip
+        fields = ['id', 'driver', 'passenger', 'request_type', 'zone', 'created_at', 'is_finished']
+
+class AcceptedTripTableSerializer(serializers.ModelSerializer):
+    driver = UserBriefSerializer(read_only=True)
+    passenger = UserBriefSerializer(read_only=True)
+    class Meta:
+        model = AcceptedTripTable
+        fields = ['id', 'driver', 'passenger', 'region', 'request_type', 'start_time', 'finish_time']
